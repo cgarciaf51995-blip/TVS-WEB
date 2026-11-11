@@ -1651,8 +1651,8 @@ body.portal-open #portal{z-index:15000!important;inset:0!important;}
 // ========================================
 // CONFIGURACIÓN DE SUPABASE
 // ========================================
-const SUPABASE_URL = '';
-const SUPABASE_ANON_KEY = '';
+const SUPABASE_URL = 'https://dyreeuaalbcqcpdfplgr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5cmVldWFhbGJjcWNwZGZwbGdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwNTE1ODksImV4cCI6MjEwMTYyNzU4OX0.f2daSMN2OiDbj-M_Z6j10XkdNLr0YpEax7HgyC-nTvg';
 
 // Inicializar cliente de Supabase
 let supabase = null;
@@ -1745,7 +1745,7 @@ async function migrateLocalDataToSupabase() {
     console.log('');
     console.table(migrationResults);
     console.log('');
-    console.log('Verifica los datos en: el panel del proyecto Supabase configurado');
+    console.log('Verifica los datos en: https://supabase.com/dashboard/project/dyreeuaalbcqcpdfplgr');
     return migrationResults;
   } catch (error) {
     console.error('❌ Error durante la migración:', error);
@@ -1898,14 +1898,14 @@ switchBrand(activeBrand,false);
 
 // Acceso demostrativo por perfiles. Para producción debe conectarse a un servidor y base de datos.
 const roleConfig={
- admin:{label:'Administrador',icon:'🔐',user:'admin',password:null,message:'Control general del catálogo, usuarios, precios y solicitudes.',stats:[['Usuarios activos','24'],['Solicitudes nuevas','18'],['Modelos publicados',String(bikes.length)]],actions:[['Gestionar usuarios','Crear, editar o bloquear accesos'],['Administrar catálogo','Modificar modelos, precios e imágenes'],['Ver solicitudes','Revisar cotizaciones recibidas'],['Configuración','Personalizar datos del sitio'],['Editor de diseño','Cambiar colores, portada, logo, textos y tipografía'],['Configurar asistente IA','Conectar el chatbot con un servicio de inteligencia artificial'],['Formulario de precalificación','Administrar campos, opciones y textos del formulario'],['Programa Freelance','Editar comisiones, pasos, políticas, preguntas y solicitudes'],['Seguridad de formularios','Administrar reCAPTCHA, claves y formularios protegidos']]},
- gerencia:{label:'Gerencia',icon:'📊',user:'gerencia',password:null,message:'Consulta indicadores comerciales, resultados y actividad del equipo.',stats:[['Ventas del mes','Q 128,500.00'],['Leads activos','42'],['Conversión','31%']],actions:[['Reporte comercial','Consultar resultados por período'],['Rendimiento','Comparar vendedores y canales'],['Inventario','Revisar disponibilidad de modelos'],['Exportar datos','Preparar reportes administrativos']]},
- vendedor:{label:'Portal Vendedor',icon:'👤',user:'vendedor',password:null,message:'Administra prospectos, cotizaciones y seguimiento de clientes.',stats:[['Mis prospectos','14'],['Cotizaciones','9'],['Seguimientos hoy','5']],actions:[['Nuevo prospecto','Registrar datos de un cliente'],['Crear cotización','Preparar una propuesta de compra'],['Mis clientes','Consultar cartera asignada'],['Seguimientos','Organizar próximas llamadas']]},
- freelance:{label:'Freelance',icon:'💎',user:'freelance',password:null,message:'Registra prospectos y consulta el estado de tus referencias.',stats:[['Referidos activos','8'],['Aprobados','3'],['Comisión estimada','Q 1,250.00']],actions:[['Registrar referido','Enviar un nuevo prospecto'],['Estado de referidos','Consultar avance de solicitudes'],['Mis comisiones','Revisar pagos generados'],['Material comercial','Acceder a recursos de venta']]}
+ admin:{label:'Administrador',icon:'🔐',user:'admin',password:'Admin2026',message:'Control general del catálogo, usuarios, precios y solicitudes.',stats:[['Usuarios activos','24'],['Solicitudes nuevas','18'],['Modelos publicados',String(bikes.length)]],actions:[['Gestionar usuarios','Crear, editar o bloquear accesos'],['Administrar catálogo','Modificar modelos, precios e imágenes'],['Ver solicitudes','Revisar cotizaciones recibidas'],['Configuración','Personalizar datos del sitio'],['Editor de diseño','Cambiar colores, portada, logo, textos y tipografía'],['Configurar asistente IA','Conectar el chatbot con un servicio de inteligencia artificial'],['Formulario de precalificación','Administrar campos, opciones y textos del formulario'],['Programa Freelance','Editar comisiones, pasos, políticas, preguntas y solicitudes'],['Seguridad de formularios','Administrar reCAPTCHA, claves y formularios protegidos']]},
+ gerencia:{label:'Gerencia',icon:'📊',user:'gerencia',password:'Gerencia2026',message:'Consulta indicadores comerciales, resultados y actividad del equipo.',stats:[['Ventas del mes','Q 128,500.00'],['Leads activos','42'],['Conversión','31%']],actions:[['Reporte comercial','Consultar resultados por período'],['Rendimiento','Comparar vendedores y canales'],['Inventario','Revisar disponibilidad de modelos'],['Exportar datos','Preparar reportes administrativos']]},
+ vendedor:{label:'Portal Vendedor',icon:'👤',user:'vendedor',password:'Vendedor2026',message:'Administra prospectos, cotizaciones y seguimiento de clientes.',stats:[['Mis prospectos','14'],['Cotizaciones','9'],['Seguimientos hoy','5']],actions:[['Nuevo prospecto','Registrar datos de un cliente'],['Crear cotización','Preparar una propuesta de compra'],['Mis clientes','Consultar cartera asignada'],['Seguimientos','Organizar próximas llamadas']]},
+ freelance:{label:'Freelance',icon:'💎',user:'freelance',password:'Freelance2026',message:'Registra prospectos y consulta el estado de tus referencias.',stats:[['Referidos activos','8'],['Aprobados','3'],['Comisión estimada','Q 1,250.00']],actions:[['Registrar referido','Enviar un nuevo prospecto'],['Estado de referidos','Consultar avance de solicitudes'],['Mis comisiones','Revisar pagos generados'],['Material comercial','Acceder a recursos de venta']]}
 };
 let activeRole='admin';
 const loginModal=document.getElementById('loginModal');
-function openLogin(role){activeRole=role;const c=roleConfig[role];document.getElementById('loginIcon').textContent=c.icon;document.getElementById('loginTitle').textContent=`Acceso ${companyRoleLabel(role,activeBrand)}`;document.getElementById('loginSubtitle').textContent=`Ingresa al portal de ${companyRoleLabel(role,activeBrand)}.`;document.getElementById('loginDemo').innerHTML=`<strong>Acceso al portal</strong><br>Solicita tu usuario al administrador.`;document.getElementById('applyLink').style.display=role==='freelance'?'block':'none';document.getElementById('loginUser').value='';document.getElementById('loginPassword').value='';document.getElementById('loginError').classList.remove('show');document.body.classList.toggle('freelance-login-open',role==='freelance');loginModal.classList.add('open');loginModal.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('loginUser').focus(),80)}
+function openLogin(role){activeRole=role;const c=roleConfig[role];document.getElementById('loginIcon').textContent=c.icon;document.getElementById('loginTitle').textContent=`Acceso ${companyRoleLabel(role,activeBrand)}`;document.getElementById('loginSubtitle').textContent=`Ingresa al portal de ${companyRoleLabel(role,activeBrand)}.`;document.getElementById('loginDemo').innerHTML=`<strong>Acceso de demostración</strong><br>Usuario: ${c.user}<br>Contraseña: ${c.password}`;document.getElementById('applyLink').style.display=role==='freelance'?'block':'none';document.getElementById('loginUser').value='';document.getElementById('loginPassword').value='';document.getElementById('loginError').classList.remove('show');document.body.classList.toggle('freelance-login-open',role==='freelance');loginModal.classList.add('open');loginModal.setAttribute('aria-hidden','false');setTimeout(()=>document.getElementById('loginUser').focus(),80)}
 function closeLogin(){
  loginModal.classList.remove('open');
  loginModal.setAttribute('aria-hidden','true');
@@ -1916,7 +1916,7 @@ function closeLogin(){
 document.querySelectorAll('.role-btn').forEach(btn=>btn.addEventListener('click',()=>btn.dataset.role==='freelance'?openFreelanceProgram():openLogin(btn.dataset.role)));
 document.getElementById('loginClose').onclick=closeLogin;
 loginModal.addEventListener('click',e=>{if(e.target===loginModal)closeLogin()});
-document.getElementById('loginForm').addEventListener('submit',e=>{e.preventDefault();const c=roleConfig[activeRole];const user=document.getElementById('loginUser').value.trim();const pass=document.getElementById('loginPassword').value;let valid=Boolean(c.password)&&user===c.user&&pass===c.password;const custom=getPortalUsers().find(a=>a.username===user&&a.role===activeRole);if(custom)valid=!custom.blocked&&custom.password===pass;if(activeRole==='freelance'){const accounts=JSON.parse(localStorage.getItem('tvsFreelanceAccounts')||'[]');valid=valid||accounts.some(a=>a.username===user&&a.password===pass&&!a.blocked&&(a.status==='Aprobado'||!a.status))}if(valid){sessionStorage.setItem('tvsPortalSession',JSON.stringify({role:activeRole,user}));closeLogin();if(typeof closeFreelanceProgram==='function')closeFreelanceProgram();showPortal(activeRole,user)}else{document.getElementById('loginError').classList.add('show')}});
+document.getElementById('loginForm').addEventListener('submit',e=>{e.preventDefault();const c=roleConfig[activeRole];const user=document.getElementById('loginUser').value.trim();const pass=document.getElementById('loginPassword').value;let valid=user===c.user&&pass===c.password;const custom=getPortalUsers().find(a=>a.username===user&&a.role===activeRole);if(custom)valid=!custom.blocked&&custom.password===pass;if(activeRole==='freelance'){const accounts=JSON.parse(localStorage.getItem('tvsFreelanceAccounts')||'[]');valid=valid||accounts.some(a=>a.username===user&&a.password===pass&&!a.blocked&&(a.status==='Aprobado'||!a.status))}if(valid){sessionStorage.setItem('tvsPortalSession',JSON.stringify({role:activeRole,user}));closeLogin();if(typeof closeFreelanceProgram==='function')closeFreelanceProgram();showPortal(activeRole,user)}else{document.getElementById('loginError').classList.add('show')}});
 function showPortal(role,user){const c=roleConfig[role];activeRole=role;const portal=document.getElementById('portal');portal.classList.toggle('vendedor-crm-mode',role==='vendedor');if(role!=='vendedor')document.getElementById('sellerCRMFrame')?.remove();portal.classList.toggle('freelance-mode',role==='freelance');portal.classList.toggle('gerencia-mode',role==='gerencia');document.getElementById('portalUser').textContent=`${c.icon} ${user}`;document.getElementById('portalTitle').textContent=`Bienvenido, ${companyRoleLabel(role,activeBrand)}`;document.getElementById('portalMessage').textContent=`${c.message} · Empresa activa: ${brandConfig[activeBrand].name}`;if(role==='vendedor'){openSellerCRM(user)}else if(role==='freelance'){renderFreelanceDashboard(user)}else if(role==='gerencia'){renderGerenciaDashboard(user)}else{refreshPortalStats();document.getElementById('dashboardActions').innerHTML=c.actions.map((x,i)=>`<button class="dash-action" type="button" data-action="${i}"><b>${x[0]}</b><small>${x[1]}</small></button>`).join('');document.querySelectorAll('#dashboardActions .dash-action').forEach(btn=>btn.addEventListener('click',()=>runPortalAction(role,+btn.dataset.action)))}portal.classList.add('open');document.body.classList.add('portal-open');document.body.style.overflow='hidden';portal.scrollTop=0}
 function openSellerCRM(user){
  const portal=document.getElementById('portal');
@@ -3632,9 +3632,9 @@ if(resend)resend.onclick=()=>window.open(`https://wa.me/${destination}?text=${en
 
 <script>
 const freelanceProgramDefaults={
- brandName:'Programa Freelance TVS / Freedom',
- heroTitle:'CONVERTITE EN FREELANCE',
- heroText:'Compartís tu enlace, tus contactos cotizan y recibís comisión por cada motocicleta vendida con tu referencia.',
+ brandName:'Programa Freelance TVS',
+ heroTitle:'Convertí tus contactos en oportunidades',
+ heroText:'Compartí tu enlace personal, registrá personas interesadas y seguí cada oportunidad desde tu panel freelance.',
  tiers:[{from:1,to:10,amount:600},{from:11,to:20,amount:750},{from:21,to:999,amount:1000}],
  whatsapp:String(localStorage.getItem('tvsWhatsapp')||'50236421696').replace(/\D/g,''),
  catalogBaseUrl:'',
