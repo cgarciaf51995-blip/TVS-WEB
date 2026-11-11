@@ -52,10 +52,3 @@ No recolectar documentos o información sensible real hasta completar autenticac
 `npm run test:security` ejecuta pruebas con respuestas de Google simuladas para no requerir claves reales: acceso administrativo, origen, secretos ocultos, tokens vacíos, inválidos, vencidos, de otro dominio y reutilizados, y selección de formularios. No valida la cuenta ni las claves reales del negocio; esa comprobación debe hacerse después de configurarlas.
 
 Se conservan el nombre San Cristóbal TVS, el diseño del carrusel y su avance automático cada cinco segundos.
-
-
-## Preparación para repositorio público
-
-Se retiraron del HTML las claves de Supabase del proyecto anterior y las cuatro contraseñas fijas de demostración. Los accesos predeterminados quedan desactivados; no se acepta una contraseña vacía. El diseño y el catálogo se conservan. Los usuarios locales previamente creados mantienen el funcionamiento de demostración descrito arriba. Esta entrega aún requiere implementar la autenticación central y permisos de producción antes de habilitar operaciones con datos reales.
-
-Las configuraciones y credenciales de cada entorno se administran fuera de este repositorio. Estas instrucciones describen el código de origen; una instalación con integraciones adicionales debe conservarlas al actualizar.
