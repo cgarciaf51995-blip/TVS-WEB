@@ -1,5 +1,3 @@
-> CARGA PARCIAL: los archivos public/portal-gys-v6.html y dist/portal-gys-v6.html están pendientes de publicación. Esta rama no está lista para desplegarse. No reemplaza la instalación actual del VPS.
-
 # San Cristóbal TVS · V60
 
 Incluye la edición exclusiva TVS, catálogo, carrusel automático, portales, CRM y reCAPTCHA v2 administrable.
