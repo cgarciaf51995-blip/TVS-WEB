@@ -1,0 +1,67 @@
+/* Colección TVS: composición editorial con imágenes anterior/actual/siguiente. */
+#tvsShowcase{background:#e6edf5!important;color:#0c2859!important;padding:0!important;position:relative;overflow:hidden;isolation:isolate;scroll-margin-top:100px}
+#tvsShowcase[hidden]{display:none!important}
+#tvsShowcase *{box-sizing:border-box}
+#tvsShowcase .tvs-showcase-shell{width:min(1180px,calc(100% - 64px));margin:auto;position:relative;min-height:650px;display:grid;grid-template-columns:.95fr 1.05fr;align-items:center;gap:36px}
+#tvsShowcase .tvs-showcase-top{position:absolute;top:35px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:750;letter-spacing:.17em;text-transform:uppercase;z-index:3}
+#tvsShowcase .tvs-showcase-brand{border-left:3px solid #e62d38;padding-left:12px}
+#tvsShowcase .tvs-showcase-top a{color:inherit;text-decoration:none;letter-spacing:.07em;border-bottom:1px solid #b0bdd0;padding-bottom:5px}
+#tvsShowcase .tvs-showcase-copy{position:relative;z-index:3;min-width:0;padding:110px 0 135px}
+#tvsShowcase .tvs-showcase-category{display:block;text-transform:uppercase;letter-spacing:.18em;font-size:11px;font-weight:750;color:#4d6586;margin-bottom:19px}
+#tvsShowcase h2{font-size:clamp(46px,5.3vw,82px)!important;line-height:1.02!important;letter-spacing:-.055em!important;font-weight:850!important;color:#0c2859!important;margin:0!important;overflow-wrap:anywhere;max-width:570px}
+#tvsShowcase .tvs-showcase-specs{color:#4d6586;margin:22px 0 26px;font-size:15px;letter-spacing:.02em}
+#tvsShowcase .tvs-showcase-details{background:#0c3688;border:1px solid #0c3688;color:#fff;border-radius:999px;min-height:47px;padding:12px 25px;display:inline-flex;align-items:center;gap:30px;font-weight:700;cursor:pointer;font-size:14px}
+#tvsShowcase .tvs-showcase-details:hover{background:#08265f}
+#tvsShowcase .tvs-showcase-stack{position:relative;height:650px;min-width:0;perspective:1100px}
+#tvsShowcase .tvs-showcase-current{position:absolute;z-index:2;inset:175px -8px auto -20px;height:300px;background:#fff;border:1px solid #d9e2ed;border-radius:4px;box-shadow:0 24px 45px rgba(12,40,89,.12);overflow:hidden}
+#tvsShowcase .tvs-showcase-photo{display:grid;place-items:center;position:relative}
+#tvsShowcase .tvs-showcase-photo img{display:block;width:100%;height:100%;object-fit:contain;padding:18px;position:absolute;inset:0;background:#fff}
+#tvsShowcase .tvs-showcase-preview{position:absolute;width:76%;height:210px;right:9%;padding:0;border:1px solid #d2dce8;border-radius:4px;box-shadow:0 12px 26px rgba(12,40,89,.07);overflow:hidden;background:#f7f9fc;opacity:.42;filter:blur(2px);cursor:pointer;transition:opacity .25s,filter .25s}
+#tvsShowcase .tvs-showcase-preview:hover,#tvsShowcase .tvs-showcase-preview:focus-visible{opacity:.85;filter:none}
+#tvsShowcase .tvs-showcase-previous{top:-35px;transform:rotateX(-19deg) rotateZ(-9deg) scale(.96)}
+#tvsShowcase .tvs-showcase-next{bottom:-35px;transform:rotateX(19deg) rotateZ(9deg) scale(.96)}
+#tvsShowcase .tvs-showcase-preview .tvs-showcase-photo{height:100%;width:100%}
+#tvsShowcase .tvs-showcase-placeholder{font-size:13px;color:#76869e;text-align:center;padding:15px}
+#tvsShowcase .tvs-showcase-placeholder[hidden]{display:none!important}
+#tvsShowcase .tvs-showcase-bottom{position:absolute;bottom:35px;left:0;right:0;display:flex;align-items:center;gap:18px;z-index:4}
+#tvsShowcase .tvs-showcase-arrows{display:flex;gap:8px}
+#tvsShowcase .tvs-showcase-arrows button{width:46px;height:46px;border:1px solid #b4c2d5;background:transparent;border-radius:50%;color:#0c2859;font-size:22px;cursor:pointer}
+#tvsShowcase .tvs-showcase-arrows button:hover{background:#0c3688;color:#fff;border-color:#0c3688}
+#tvsShowcase .tvs-showcase-arrows button:disabled{opacity:.35;cursor:default}
+#tvsShowcase .tvs-showcase-count{font-size:12px;font-variant-numeric:tabular-nums;letter-spacing:.1em;white-space:nowrap}
+#tvsShowcase .tvs-showcase-dots{display:flex;gap:6px;flex-wrap:wrap;max-width:250px;margin-left:auto}
+#tvsShowcase .tvs-showcase-dots button{width:18px;height:26px;padding:0;background:transparent;border:0;cursor:pointer;display:grid;place-items:center}
+#tvsShowcase .tvs-showcase-dots button:before{content:'';width:5px;height:5px;border-radius:50%;background:#a6b7ce}
+#tvsShowcase .tvs-showcase-dots button.active:before{background:#0c3688;width:7px;height:7px}
+#tvsShowcase .tvs-showcase-play{color:#4d6586;background:transparent;border:0;font:inherit;font-size:12px;padding:10px;cursor:pointer;white-space:nowrap}
+#tvsShowcase button:focus-visible,#tvsShowcase a:focus-visible{outline:3px solid #0c3688;outline-offset:5px}
+@media(max-width:850px){#tvsShowcase .tvs-showcase-shell{width:calc(100% - 40px);gap:14px;min-height:590px}#tvsShowcase .tvs-showcase-stack{height:590px}#tvsShowcase .tvs-showcase-current{inset:160px 0 auto -8px;height:270px}#tvsShowcase .tvs-showcase-preview{height:185px}#tvsShowcase h2{font-size:clamp(40px,6.5vw,62px)!important}}
+@media(max-width:600px){#tvsShowcase .tvs-showcase-shell{width:calc(100% - 36px);display:flex;flex-direction:column;gap:0;min-height:740px;align-items:stretch;padding-bottom:100px}#tvsShowcase .tvs-showcase-top{top:25px;font-size:9px;gap:10px}#tvsShowcase .tvs-showcase-copy{padding:95px 0 10px}#tvsShowcase .tvs-showcase-category{font-size:10px;margin-bottom:12px}#tvsShowcase h2{font-size:clamp(42px,11vw,62px)!important;max-width:100%;position:relative}#tvsShowcase .tvs-showcase-specs{font-size:13px;margin:14px 0 18px}#tvsShowcase .tvs-showcase-details{min-height:42px;padding:10px 20px;font-size:13px}#tvsShowcase .tvs-showcase-stack{height:340px;margin:0;flex:none}#tvsShowcase .tvs-showcase-current{inset:70px 0 auto;height:220px}#tvsShowcase .tvs-showcase-preview{width:63%;height:135px;right:10%;opacity:.3}#tvsShowcase .tvs-showcase-previous{top:0;right:4%}#tvsShowcase .tvs-showcase-next{bottom:-15px;right:17%}#tvsShowcase .tvs-showcase-bottom{bottom:24px;gap:12px;flex-wrap:wrap}#tvsShowcase .tvs-showcase-arrows button{width:40px;height:40px}#tvsShowcase .tvs-showcase-play{margin-left:auto}#tvsShowcase .tvs-showcase-dots{order:5;width:100%;max-width:100%;margin-left:0;gap:4px}#tvsShowcase .tvs-showcase-top a{font-size:9px}}
+@media(prefers-reduced-motion:reduce){#tvsShowcase *{transition:none!important;animation:none!important}}
+/* V59: acabado de exhibición, tipografía equilibrada y fotografía protagonista. */
+#tvsShowcase{background:#f2f5f9!important}
+#tvsShowcase .tvs-showcase-shell{grid-template-columns:.8fr 1.2fr;gap:65px;min-height:610px}
+#tvsShowcase .tvs-showcase-top{top:32px;font-size:10px;letter-spacing:.15em}
+#tvsShowcase .tvs-showcase-top a{font-size:10px;font-weight:650}
+#tvsShowcase .tvs-showcase-copy{padding:110px 0 125px}
+#tvsShowcase .tvs-showcase-category{font-size:10px;letter-spacing:.2em;color:#6c7b91;margin-bottom:20px}
+#tvsShowcase h2{font-size:clamp(40px,4.3vw,62px)!important;line-height:1.08!important;font-weight:750!important;letter-spacing:-.045em!important;max-width:440px}
+#tvsShowcase .tvs-showcase-specs{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 30px}
+#tvsShowcase .tvs-showcase-specs span{font-size:12px;line-height:1.3;color:#53647d;background:#fff;border:1px solid #dce4ee;border-radius:999px;padding:7px 13px;letter-spacing:.02em}
+#tvsShowcase .tvs-showcase-details{font-size:13px;padding:13px 22px;gap:26px;box-shadow:0 5px 12px rgba(12,54,136,.08)}
+#tvsShowcase .tvs-showcase-stack{height:610px}
+#tvsShowcase .tvs-showcase-current{inset:140px 0 auto -15px;height:330px;border-radius:22px;border-color:#e0e6ef;box-shadow:0 22px 52px rgba(12,40,89,.09)}
+#tvsShowcase .tvs-showcase-current img{padding:18px 20px}
+#tvsShowcase .tvs-showcase-preview{width:66%;height:178px;right:10%;border-radius:18px;opacity:.28;filter:blur(1px)}
+#tvsShowcase .tvs-showcase-previous{top:-16px;transform:rotateX(-14deg) rotateZ(-6deg) scale(.96)}
+#tvsShowcase .tvs-showcase-next{bottom:-16px;transform:rotateX(14deg) rotateZ(6deg) scale(.96)}
+#tvsShowcase .tvs-showcase-bottom{bottom:30px;gap:15px;border-top:1px solid rgba(145,163,188,.22);padding-top:18px}
+#tvsShowcase .tvs-showcase-arrows button{background:#fff;border-color:#d5deeb;width:43px;height:43px;font-size:20px}
+#tvsShowcase .tvs-showcase-count{font-size:11px;color:#65768d;letter-spacing:.08em}
+#tvsShowcase .tvs-showcase-dots button{width:auto;min-width:20px;height:30px}
+#tvsShowcase .tvs-showcase-dots button:before{width:5px;height:5px;background:#bac6d7;transition:width .25s}
+#tvsShowcase .tvs-showcase-dots button.active:before{width:25px;height:5px;border-radius:5px;background:#0c3688}
+#tvsShowcase .tvs-showcase-play{border:1px solid #d5deeb;border-radius:999px;background:#fff;padding:9px 15px;min-height:38px;font-size:11px;min-width:96px}
+#tvsShowcase .tvs-showcase-play:hover{border-color:#0c3688;color:#0c3688}
+@media(max-width:1000px){#tvsShowcase .tvs-showcase-shell{gap:30px}#tvsShowcase h2{font-size:46px!important}#tvsShowcase .tvs-showcase-current{height:300px;top:150px}}
+@media(max-width:600px){#tvsShowcase .tvs-showcase-shell{gap:0;min-height:670px;padding-bottom:105px}#tvsShowcase .tvs-showcase-top{top:26px;gap:8px;font-size:8px}#tvsShowcase .tvs-showcase-brand{max-width:55%;line-height:1.5}#tvsShowcase .tvs-showcase-top a{font-size:8px;white-space:nowrap}#tvsShowcase .tvs-showcase-copy{padding:90px 0 0}#tvsShowcase .tvs-showcase-category{margin-bottom:13px;font-size:9px}#tvsShowcase h2{font-size:clamp(35px,9.5vw,45px)!important;max-width:100%}#tvsShowcase .tvs-showcase-specs{margin:17px 0 20px}#tvsShowcase .tvs-showcase-specs span{font-size:11px;padding:6px 11px}#tvsShowcase .tvs-showcase-details{padding:10px 18px;min-height:42px;font-size:12px}#tvsShowcase .tvs-showcase-stack{height:330px}#tvsShowcase .tvs-showcase-current{inset:64px 0 auto;height:235px;border-radius:17px}#tvsShowcase .tvs-showcase-current img{padding:12px}#tvsShowcase .tvs-showcase-preview{height:125px;width:65%;border-radius:12px}#tvsShowcase .tvs-showcase-previous{top:0;right:4%}#tvsShowcase .tvs-showcase-next{bottom:-15px;right:15%}#tvsShowcase .tvs-showcase-bottom{bottom:20px;padding-top:15px;gap:10px}#tvsShowcase .tvs-showcase-arrows button{width:38px;height:38px}#tvsShowcase .tvs-showcase-play{font-size:10px;min-width:90px;padding:9px 12px}#tvsShowcase .tvs-showcase-count{font-size:10px}}

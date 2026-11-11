@@ -1,0 +1,16 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Seguridad · San Cristóbal TVS</title><link rel="stylesheet" href="assets/css/security-admin.css"><script defer src="assets/js/security-admin.js"></script></head><body><main>
+<header><small>SAN CRISTÓBAL TVS</small><h1>Seguridad de formularios</h1><p>reCAPTCHA v2 · Casilla “No soy un robot”</p></header>
+<p id="status" role="status"></p>
+<form id="securityLogin"><h2>Acceso de administración</h2><p>Usa la contraseña administrativa del servidor configurada en <code>SECURITY_ADMIN_PASSWORD</code>.</p><label>Contraseña del servidor<input id="securityPassword" type="password" autocomplete="current-password" required></label><button>Ingresar</button></form>
+<form id="securityConfig" hidden>
+<div class="statusline"><strong id="securityState"></strong><button type="button" id="securityLogout" class="secondary">Cerrar sesión de seguridad</button></div>
+<label class="check"><input type="checkbox" id="enabled"> Activar reCAPTCHA en el sitio</label>
+<label>Clave pública (Site Key)<input id="siteKey" autocomplete="off" maxlength="200"></label>
+<label>Clave secreta (Secret Key)<input id="secretKey" type="password" autocomplete="new-password" maxlength="300" placeholder="Vacío = conservar la clave actual"></label><small id="secretState"></small>
+<label>Dominios autorizados<textarea id="hostnames" rows="3" placeholder="tudominio.com&#10;www.tudominio.com&#10;localhost"></textarea></label><small>Uno por línea, sin https:// ni rutas. Deben coincidir con los dominios registrados en Google.</small>
+<h2>Formularios protegidos</h2><div id="formChoices"></div>
+<p class="note">La clave secreta se guarda únicamente en el servidor. Esta protección reduce envíos automatizados; no sustituye los permisos de usuarios ni la validación de datos del sistema.</p>
+<div class="actions"><button>Guardar configuración</button><button type="button" id="refreshConfig" class="secondary">Recargar</button></div>
+</form>
+<footer><a href="https://www.google.com/recaptcha/admin/create" target="_blank" rel="noopener noreferrer">Registrar claves de reCAPTCHA en Google ↗</a><p>Selecciona reCAPTCHA v2 → Casilla “No soy un robot”.</p></footer>
+</main></body></html>

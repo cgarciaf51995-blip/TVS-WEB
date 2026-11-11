@@ -1,0 +1,23 @@
+{
+  "name": "distribuidora-gys-react",
+  "private": true,
+  "version": "2.6.1",
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env server/dev.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node --env-file-if-exists=.env server/security.mjs",
+    "test:security": "node --test tests/security.test.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "vite": "6.4.5"
+  },
+  "engines": {
+    "node": ">=22.15.0"
+  }
+}

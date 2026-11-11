@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#073b8f" />
+  <title>San Cristóbal TVS · Catálogo V60</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#fff;overflow:hidden;font-family:Inter,Segoe UI,Arial,sans-serif}
+    #portal-shell{position:fixed;inset:0;background:#fff;z-index:1}
+    #portal-frame{display:block;width:100%;height:100%;border:0;background:#fff}
+    #react-ui{position:fixed;right:14px;bottom:14px;z-index:999999;pointer-events:none}
+    .boot-badge{pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:999px;background:#073b8f;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22);font-size:11px;font-weight:900}
+    .boot-dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.18)}
+  </style>
+  <script type="module" crossorigin src="/assets/index-B3-F6aTY.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-B_Ndl6BU.css">
+</head>
+<body>
+  <!-- El portal es HTML persistente y NO depende de React para verse. -->
+  <div id="portal-shell">
+    <iframe id="portal-frame" src="/portal-gys-v6.html?v=20261109-60" title="San Cristóbal TVS"></iframe>
+  </div>
+  <!-- React solo agrega una insignia de estado; si React falla, el portal sigue visible. -->
+  <div id="react-ui"><div class="boot-badge"><span class="boot-dot"></span>GYS V58 · Cargando</div></div>
+</body>
+</html>

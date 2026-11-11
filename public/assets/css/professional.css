@@ -1,0 +1,245 @@
+/* =========================================================
+   Distribuidora G&S — Professional UI Layer
+   Capa visual no destructiva: conserva IDs, clases funcionales
+   y toda la lógica JavaScript existente de site.html.
+   ========================================================= */
+
+:root{
+  --pro-blue-950:#06152a;
+  --pro-blue-900:#082a59;
+  --pro-blue-800:#0a418e;
+  --pro-blue-700:#0d58b8;
+  --pro-blue-100:#eaf3ff;
+  --pro-gold:#f4b719;
+  --pro-red:#e5222d;
+  --pro-bg:#f4f7fb;
+  --pro-surface:#ffffff;
+  --pro-text:#13243e;
+  --pro-muted:#65758b;
+  --pro-border:#dce4ee;
+  --pro-radius:18px;
+  --pro-radius-lg:26px;
+  --pro-shadow:0 14px 36px rgba(14,42,78,.10);
+  --pro-shadow-lg:0 24px 70px rgba(5,23,47,.18);
+}
+
+html{scroll-padding-top:24px}
+body{font-family:Inter,"Segoe UI",Arial,sans-serif;letter-spacing:-.005em}
+button,a,input,select,textarea{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(26,108,214,.24);outline-offset:2px}
+
+/* ---------- Sitio público ---------- */
+.hero{
+  min-height:680px;
+  background-position:center 45%;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.hero:after{height:180px;background:linear-gradient(transparent,#090909 76%)}
+.nav{padding:22px 0}
+.nav-inner{align-items:flex-start}
+.logo{width:210px;filter:drop-shadow(0 12px 24px rgba(0,0,0,.22))}
+.hero-content{max-width:720px;padding-top:120px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(237,28,36,.12);border:1px solid rgba(255,87,95,.30);font-size:.76rem}
+.hero h1{max-width:690px;margin-top:18px;letter-spacing:-.055em;text-shadow:0 8px 32px rgba(0,0,0,.34)}
+.hero p{color:rgba(255,255,255,.82);font-size:1.13rem}
+.hero-buttons{gap:10px}
+.btn{min-height:46px;border-radius:13px;padding:12px 18px;box-shadow:none}
+.btn:hover{transform:translateY(-1px)}
+.btn-red{box-shadow:0 10px 24px rgba(229,34,45,.23)}
+.btn-outline{background:rgba(7,17,31,.42);border-color:rgba(255,255,255,.24);backdrop-filter:blur(10px)}
+.credit{display:inline-flex;align-items:center;gap:7px;margin-top:22px;padding:10px 13px;border-radius:11px;background:rgba(6,21,42,.55);border:1px solid rgba(255,255,255,.10);font-size:.94rem}
+
+.brand-control-panel{border-radius:20px!important;background:linear-gradient(145deg,rgba(7,18,34,.86),rgba(8,30,58,.72))!important;border-color:rgba(255,255,255,.14)!important;box-shadow:0 18px 50px rgba(0,0,0,.28)!important}
+.brand-control-panel .brand-switch{border-radius:13px!important}
+.brand-control-panel .brand-btn{border-radius:10px!important}
+.nav-quick-btn{border-radius:10px!important}
+
+.category-strip{margin-top:-34px}
+.categories{padding:10px;border-radius:18px;background:rgba(17,21,27,.95);border-color:#292f39;box-shadow:0 18px 55px rgba(0,0,0,.34);backdrop-filter:blur(12px)}
+.cat{min-height:54px;border-radius:12px;background:#171b22;border-color:#2b313a;color:#d9e0e8;font-size:.88rem;transition:.18s ease}
+.cat:hover,.cat.active{transform:translateY(-1px);box-shadow:0 8px 20px rgba(229,34,45,.17)}
+
+section{padding-top:72px;padding-bottom:72px}
+.section-head{margin-bottom:38px}
+.section-head small{font-size:.72rem}
+.section-head h2{letter-spacing:-.04em}
+.section-head p{font-size:1rem}
+
+.grid{gap:18px}
+.card{border-radius:20px;background:linear-gradient(155deg,#171b20,#0d1014);border-color:#262d35;box-shadow:0 8px 30px rgba(0,0,0,.18);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-5px);border-color:#424c58;box-shadow:0 20px 44px rgba(0,0,0,.25)}
+.bike-img{height:255px;background:#151a20}
+.card-body{padding:19px}
+.card h3{font-size:1.38rem;letter-spacing:-.02em}
+.price{font-size:1.55rem}
+.card-actions{gap:8px}
+.card-actions .btn{border-radius:10px}
+.badge{border-radius:8px;padding:6px 9px;box-shadow:0 7px 18px rgba(0,0,0,.18)}
+
+.promo{background:linear-gradient(125deg,#10141a 0%,#080b10 55%,#170b10 100%)}
+.promo-box{gap:52px}
+.quote-box{border-radius:22px;padding:28px;box-shadow:var(--pro-shadow-lg)}
+.quote-box h3{letter-spacing:-.03em}
+.field select,.field input{min-height:47px;border-radius:10px;border-color:#d8e0ea;background:#fbfcfe;outline:none}
+.field select:focus,.field input:focus{border-color:#4e84c7;box-shadow:0 0 0 4px rgba(20,91,181,.08)}
+.result{border-radius:12px;background:#f1f5f9}
+.benefit{border-radius:13px;border-color:#2b323a;background:#12171c}
+
+.about-img{border-radius:22px;box-shadow:0 18px 48px rgba(0,0,0,.20)}
+.contact-item{border-radius:13px;background:#12171d;border-color:#29313a}
+
+/* ---------- Footer y accesos ---------- */
+.access-footer{background:#071d3f!important}
+.notice-bar{padding:14px 15px;background:#f4b719;color:#15233a;border:0;font-size:.88rem}
+.powered{padding:30px 15px 24px}
+.powered strong{font-size:1.35rem;letter-spacing:.02em}
+.role-access{padding:28px 15px 30px;background:#f4f7fb}
+.access-company-label{margin-bottom:15px;color:#728197;font-size:.82rem}
+.role-buttons{gap:12px}
+.role-btn{min-height:60px;border-radius:14px;background:#fff;border:1px solid #dce4ed;color:#3d4a5e;box-shadow:0 7px 20px rgba(25,46,76,.05);transition:.18s ease}
+.role-btn:hover{transform:translateY(-2px);border-color:#9ab9df;box-shadow:0 12px 28px rgba(15,60,120,.09)}
+.role-btn.freelance{box-shadow:0 10px 25px rgba(231,171,0,.16)}
+.copyright{background:#fff;color:#8490a1;border-top:1px solid #e8edf3}
+
+/* ---------- Login ---------- */
+.login-modal{background:rgba(4,14,31,.72);backdrop-filter:blur(11px)}
+.login-card{border-radius:22px;padding:30px;border:1px solid rgba(255,255,255,.7);box-shadow:0 32px 90px rgba(2,16,35,.28)}
+.login-icon{width:58px;height:58px;border-radius:16px;background:#eaf3ff;color:#0a4b9f}
+.login-card h2{font-size:1.55rem;letter-spacing:-.03em}
+.login-sub{font-size:.9rem}
+.login-field input{min-height:48px;border-radius:11px;background:#fbfcfe}
+.login-submit{min-height:48px;border-radius:11px;background:linear-gradient(135deg,#0a4b9f,#0e63c8);box-shadow:0 9px 20px rgba(11,77,162,.18)}
+.login-demo{border:1px solid #e2e8ef;background:#f7f9fc}
+
+/* ---------- Portal general ---------- */
+.portal{background:#f3f6fa}
+.portal-top{position:sticky;top:0;z-index:20;min-height:70px;padding:14px 24px;background:linear-gradient(90deg,#071f44,#0a448f);box-shadow:0 8px 22px rgba(10,39,77,.12)}
+.portal-brand{font-size:1rem;letter-spacing:.01em}
+.logout-btn{border-radius:10px;background:rgba(255,255,255,.08)}
+.portal-wrap{width:min(1200px,calc(100% - 32px));margin:26px auto}
+.welcome-card{border-radius:18px;padding:24px!important;border:1px solid #e0e7ef;box-shadow:0 8px 26px rgba(19,47,82,.06)}
+.welcome-card h1{font-size:1.55rem;letter-spacing:-.03em}
+.dashboard-grid{gap:14px}
+.dash-card{border-radius:15px;border-color:#e0e7ef;box-shadow:0 6px 18px rgba(24,51,86,.045)}
+.dash-card strong{font-size:1.55rem}
+.dash-actions{gap:13px}
+.dash-action{border-radius:15px;padding:18px;box-shadow:0 6px 18px rgba(24,51,86,.04);transition:.18s ease}
+.dash-action:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(16,63,122,.08)}
+
+/* ---------- Herramientas / formularios ---------- */
+.workspace-modal{background:rgba(4,16,34,.68);backdrop-filter:blur(9px)}
+.workspace-card{border-radius:20px;border:1px solid rgba(255,255,255,.75);box-shadow:0 28px 90px rgba(4,22,48,.26)}
+.workspace-head{padding:17px 22px;background:linear-gradient(90deg,#082f6b,#0b56ad)}
+.workspace-head h2{font-size:1.18rem}
+.workspace-body{padding:22px}
+.portal-form{gap:14px}
+.portal-field label{color:#53647b;font-size:.78rem;letter-spacing:.01em}
+.portal-field input,.portal-field select,.portal-field textarea{min-height:48px;border-radius:10px;border-color:#d7e0ea;background:#fbfcfe;transition:.16s ease}
+.portal-field input:focus,.portal-field select:focus,.portal-field textarea:focus{border-color:#5c8fc9;box-shadow:0 0 0 4px rgba(22,92,174,.08);background:#fff;outline:none}
+.portal-primary,.portal-secondary{min-height:45px;border-radius:10px}
+.portal-primary{background:linear-gradient(135deg,#0a4b9f,#0f62c4);box-shadow:0 7px 18px rgba(11,77,162,.14)}
+.portal-table-wrap{border-radius:12px;border-color:#e0e6ee;background:#fff}
+.portal-table th{padding:12px 13px;background:#f5f7fa;color:#56667b;font-size:.76rem;text-transform:uppercase;letter-spacing:.035em}
+.portal-table td{padding:12px 13px}
+.status-pill{border-radius:7px}
+
+/* ---------- Gerencia ---------- */
+.portal.gerencia-mode{background:#f3f6fa}
+.gm-shell{gap:18px}
+.gm-heading{padding:10px 0}
+.gm-heading h1{font-size:1.45rem;letter-spacing:-.03em}
+.gm-section-title{border-radius:10px;border-left-width:4px;background:#fff0f1;box-shadow:inset 0 0 0 1px #f7d8da}
+.gm-section-title.yellow{background:#fff8df;box-shadow:inset 0 0 0 1px #f3e6ad}
+.gm-section-title.blue{background:#edf5ff;box-shadow:inset 0 0 0 1px #d4e7fb}
+.gm-card{border-radius:15px;padding:18px;border-color:#dfe6ee;border-top-width:3px;box-shadow:0 7px 22px rgba(29,53,85,.05)}
+.gm-card-icon{font-size:1.85rem}
+.gm-kpis{gap:11px}
+.gm-kpi{border-radius:12px;padding:14px;border-color:#e0e6ed;box-shadow:0 5px 16px rgba(28,52,83,.04)}
+.gm-toolbar input,.gm-toolbar select{min-height:44px;border-radius:9px}
+.gm-open{border-radius:9px}
+.gm-mini{border-radius:8px}
+.gm-rank{border-radius:10px}
+
+/* ---------- Freelance ---------- */
+.portal.freelance-mode{background:#f3f6fa}
+.fl-link-card{border-width:1px;border-radius:14px;box-shadow:0 7px 20px rgba(31,58,92,.05)}
+.fl-kpi{border-radius:12px;box-shadow:0 6px 18px rgba(31,58,92,.045)}
+.fl-new{border-radius:11px;background:linear-gradient(135deg,#0a4b9f,#0d5db7);box-shadow:0 9px 20px rgba(10,72,153,.18)}
+.fl-search{border-radius:11px}
+.fl-filter{border-radius:9px}
+.fl-client{border-radius:13px;box-shadow:0 6px 18px rgba(30,50,80,.04)}
+.fl-card-button{border-radius:9px}
+.fs-kpi{border-radius:10px;box-shadow:0 5px 14px rgba(25,50,80,.035)}
+
+/* ---------- Precalificación ---------- */
+.pq-shell{background:#f3f6fa!important}
+.pq-hero{background:linear-gradient(135deg,#062a60 0%,#0a4d9d 70%,#0c67b3 100%)!important;border-bottom-width:4px!important}
+.pq-hero h2{font-style:normal!important;letter-spacing:-.035em!important}
+.pq-form{max-width:1020px;margin:auto;padding:24px!important}
+.pq-card{border-radius:17px!important;border-color:#dce5ee!important;box-shadow:0 8px 24px rgba(18,57,95,.055)!important}
+.pq-card header{padding:15px 19px!important;background:linear-gradient(90deg,#082f6b,#0a4f9f)!important}
+.pq-card header b{width:36px!important;height:36px!important;font-size:17px!important}
+.pq-grid{padding:21px!important;gap:16px!important}
+.pq-grid input,.pq-grid select,.pq-grid textarea{min-height:49px!important;border-radius:10px!important;border-width:1px!important;background:#fbfcfe!important}
+.pq-grid input:focus,.pq-grid select:focus,.pq-grid textarea:focus{background:#fff!important;box-shadow:0 0 0 4px rgba(10,99,183,.08)!important}
+.pq-complete-progress{border-radius:14px!important;box-shadow:0 7px 20px rgba(15,46,91,.05)!important}
+.pq-final-summary{border-radius:15px!important}
+.pq-submit{min-height:54px!important;border-radius:12px!important;font-size:1rem!important;box-shadow:0 9px 22px rgba(22,156,79,.17)!important}
+
+/* ---------- Modales de producto ---------- */
+.modal{background:rgba(2,10,22,.80);backdrop-filter:blur(8px)}
+.modal-panel{border-radius:20px;border-color:#323941;box-shadow:0 28px 90px rgba(0,0,0,.42)}
+.modal-img{border-radius:15px}
+.close{background:#252b32}
+.tab{border-radius:8px}
+.spec{border-radius:9px}
+
+/* ---------- IA y WhatsApp ---------- */
+.ai-chat-launcher{width:58px;height:58px;right:18px;bottom:88px;background:linear-gradient(145deg,#0a4b9f,#1371d7);box-shadow:0 12px 32px rgba(11,77,162,.32);border:1px solid rgba(255,255,255,.28)}
+.ai-chat{right:18px;bottom:158px;border-radius:18px;border-color:#dce5ef;box-shadow:0 28px 75px rgba(4,20,43,.27)}
+.ai-chat-head{background:linear-gradient(135deg,#082e68,#0c57ad)}
+.ai-avatar{border-radius:11px}
+.ai-msg{border-radius:13px}
+.ai-msg.bot{border-color:#e0e6ee}
+.ai-msg.user{background:#0a4b9f}
+.ai-quick button{border-radius:8px;background:#f8fbff}
+.ai-chat-form input{border-radius:10px}
+.ai-chat-form button{border-radius:10px;background:#0a4b9f}
+.floating{width:58px;height:58px;right:18px;bottom:18px;font-size:25px;box-shadow:0 12px 30px rgba(37,211,102,.28);border:1px solid rgba(255,255,255,.25)}
+
+/* ---------- Microinteracciones ---------- */
+@media (prefers-reduced-motion:no-preference){
+  .card,.dash-action,.gm-card,.fl-client,.role-btn,.btn,.nav-quick-btn{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,filter .18s ease}
+}
+
+/* ---------- Responsive ---------- */
+@media(max-width:900px){
+  .hero{min-height:650px}
+  .hero-content{padding-top:150px}
+  .grid{gap:14px}
+  .portal-wrap{width:min(100% - 22px,1200px)}
+}
+@media(max-width:700px){
+  section{padding-top:56px;padding-bottom:56px}
+  .hero{min-height:720px}
+  .nav{padding-top:14px}
+  .hero-content{padding-top:220px}
+  .hero h1{font-size:3rem!important}
+  .hero p{font-size:1rem}
+  .categories{border-radius:15px}
+  .cat{min-height:50px}
+  .portal-top{padding:12px 14px}
+  .portal-wrap{width:calc(100% - 18px);margin:18px auto}
+  .workspace-body{padding:17px}
+  .pq-form{padding:13px!important}
+  .pq-grid{padding:16px!important}
+  .ai-chat{right:8px;bottom:78px;width:calc(100vw - 16px);height:calc(100vh - 94px);border-radius:15px}
+  .ai-chat-launcher{right:12px;bottom:82px}
+  .floating{right:12px;bottom:12px}
+}
+@media(max-width:480px){
+  .hero h1{font-size:2.7rem!important}
+  .hero-buttons .btn{width:100%}
+  .role-buttons{grid-template-columns:1fr}
+  .login-card{border-radius:18px}
+}
