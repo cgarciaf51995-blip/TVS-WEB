@@ -2,6 +2,7 @@ import {createHash,createHmac,randomBytes,scrypt as scryptCb,timingSafeEqual,cre
 import {promisify} from 'node:util';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {createChatService} from './ai-chat.mjs';
 
 const scrypt=promisify(scryptCb);
 const digest=x=>createHash('sha256').update(x).digest('hex');
@@ -52,6 +53,7 @@ async function hashPassword(p){if(typeof p!=='string'||p.length<16||p.length>200
 async function matchesPassword(p,hash){const [,salt,key]=String(hash).split('$');if(!/^[a-f0-9]{32}$/.test(salt||'')||!/^[a-f0-9]{128}$/.test(key||''))return false;const k=await scrypt(String(p).slice(0,201),salt,64,{N:32768,r:8,p:1,maxmem:64*1024*1024});return timingSafeEqual(k,Buffer.from(key,'hex'));}
 
 export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
+ const chat=createChatService(db,{env});
  let keyPromise;
  const receipts=new Map(),attempts=new Map();
  async function key(){if(!keyPromise)keyPromise=(async()=>{const dir=resolve(env.SECURITY_DATA_DIR||'private');await mkdir(dir,{recursive:true,mode:0o700});const p=resolve(dir,'zip-data.key');try{return await readFile(p);}catch(e){if(e.code!=='ENOENT')throw e;const b=randomBytes(32);try{await writeFile(p,b,{flag:'wx',mode:0o600});return b;}catch(e){if(e.code==='EEXIST')return readFile(p);throw e;}}})();const k=await keyPromise;if(k.length!==32)throw Error('Invalid data encryption key');return k;}
@@ -188,6 +190,10 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
    if(path==='/api/zip/login'&&method==='POST'){
     const input=await body(req);limited(req,'login',8);await proof(req,'login',input.receipt);const name=text(input.username,100);const r=(await db.query('SELECT id,username,name,role,password_hash,active FROM crm.users WHERE username=$1',[name])).rows[0];const dummy='scrypt$'+'0'.repeat(32)+'$'+'0'.repeat(128);const valid=await matchesPassword(input.password,r?.password_hash||dummy);if(!r||!valid||!r.active||!roles.has(r.role)||r.role!==input.role)throw problem('Usuario, contraseña o perfil incorrectos.',401);
     const token=randomBytes(32).toString('hex');await db.query('INSERT INTO crm.sessions(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval \'8 hours\')',[digest(token),r.id]);cookie(res,token,28800);delete r.password_hash;delete r.active;json(res,200,await state(r));return true;
+   }
+   if(path==='/api/zip/chat'&&method==='POST'){
+    limited(req,'chat',40);let input;try{input=JSON.parse((await rawBody(req,24000)).toString('utf8'))}catch(e){if(e.status)throw e;throw problem('Consulta inválida.');}
+    await proof(req,'chat',input?.receipt);json(res,200,await chat(input));return true;
    }
    const u=await user(req);
    if(path==='/api/zip/bootstrap.js'&&method==='GET'){
