@@ -1,0 +1,14 @@
+--- a/server/zip-data-api.mjs
++++ b/server/zip-data-api.mjs
+@@ -4,1 +4,2 @@
+ import {resolve} from 'node:path';
++import {createChatService} from './ai-chat.mjs';
+@@ -54,1 +55,2 @@
+ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
++ const chat=createChatService(db,{env});
+@@ -192,1 +194,5 @@
++   if(path==='/api/zip/chat'&&method==='POST'){
++    limited(req,'chat',40);let input;try{input=JSON.parse((await rawBody(req,24000)).toString('utf8'))}catch(e){if(e.status)throw e;throw problem('Consulta inválida.');}
++    await proof(req,'chat',input?.receipt);json(res,200,await chat(input));return true;
++   }
+    const u=await user(req);
