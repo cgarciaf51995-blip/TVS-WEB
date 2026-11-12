@@ -79,11 +79,18 @@ try:
  assert fetch('api/security/public')==captcha_before,'La configuración de reCAPTCHA debe conservarse.'
  for name in ['dist/portal-gys-v6.html','dist/assets/js/supabase-bridge.js']:
   assert hashlib.sha256(fetch(name[5:])).digest()==hashlib.sha256((source/name).read_bytes()).digest(),name
+ # Match the existing CAPTCHA policy. If chat CAPTCHA is disabled, an empty
+ # message tests input validation without consuming OpenAI credit.
+ captcha_config=json.loads(captcha_before)
+ chat_captcha_required=bool(captcha_config.get('enabled')) and captcha_config.get('forms',{}).get('chat') is not False
+ probe_body=b'{"message":"Hola"}' if chat_captcha_required else b'{}'
  try:
-  fetch('api/zip/chat',b'{"message":"Hola"}')
-  raise AssertionError('La consulta sin prueba CAPTCHA debe rechazarse.')
+  fetch('api/zip/chat',probe_body)
+  raise AssertionError('La consulta inválida o sin prueba CAPTCHA debe rechazarse.')
  except urllib.error.HTTPError as error:
-  assert error.code==400,'Revisar la ruta protegida de chat: '+str(error.code)
+  try:detail=str(json.loads(error.read()).get('error',''))[:240]
+  except Exception:detail='Respuesta no JSON'
+  assert error.code==400,'Revisar la ruta protegida de chat: '+str(error.code)+' '+detail
  print(('OPENAI_DEPLOY_PENDING_CREDIT' if pending_credit else 'OPENAI_DEPLOY_VERIFIED')+'; diseño y reCAPTCHA conservados; respaldo:',backup,flush=True)
 except Exception:
  for name in files:
