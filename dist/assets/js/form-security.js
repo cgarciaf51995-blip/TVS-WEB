@@ -43,8 +43,8 @@
     if(!token)throw Error('Completa la casilla No soy un robot para continuar.');
     hint(form,'Verificando…');
     try{
-     const response=await fetch('/api/security/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,token})});
-     const result=await response.json();if(!response.ok||result.verified!==true)throw Error(result.error||'No se pudo verificar el formulario.');
+     const response=await fetch(window.TVSBackend?'/api/zip/verify':'/api/security/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,token})});
+     const result=await response.json();if(result.receipt&&window.TVSBackend)TVSBackend.saveProof(action,result.receipt);if(!response.ok||result.verified!==true)throw Error(result.error||'No se pudo verificar el formulario.');
     }finally{window.grecaptcha.reset(item.id)}
    }
    hint(form,'');
