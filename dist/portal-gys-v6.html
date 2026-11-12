@@ -3153,10 +3153,10 @@ function getAIConfig(){
   return {
    enabled:saved.enabled!==false,
    name:getCompanyAssistantName(activeBrand),
-   endpoint:saved.endpoint||'http://localhost:3000/api/chat',
+   endpoint:(!saved.endpoint||/^http:\/\/localhost(?::\d+)?\//.test(saved.endpoint))?location.origin+'/api/zip/chat':saved.endpoint,
    provider,
    model:saved.model||aiProviderDefaults[provider]?.model||'',
-   mode:saved.mode||(saved.endpoint?'single':'local'),
+   mode:(!saved.endpoint||/^http:\/\/localhost(?::\d+)?\//.test(saved.endpoint))?'single':(saved.mode||'single'),
    fallbackProviders:Array.isArray(saved.fallbackProviders)?saved.fallbackProviders:[],
    welcome:saved.welcome||getCompanyAssistantWelcome(activeBrand),
    systemPrompt:saved.systemPrompt||`Eres ${getCompanyAssistantName(activeBrand)} de San Cristóbal TVS. Atiende en español, usa únicamente el catálogo y precios enviados en el contexto, no inventes disponibilidad ni aprobaciones de crédito y ofrece contacto con un asesor cuando sea necesario.`,
@@ -3166,8 +3166,8 @@ function getAIConfig(){
  }catch(e){
   return {
    enabled:true,name:getCompanyAssistantName(activeBrand),
-   endpoint:'http://localhost:3000/api/chat',
-   provider:'openai',model:aiProviderDefaults.openai.model,mode:'local',
+   endpoint:location.origin+'/api/zip/chat',
+   provider:'openai',model:aiProviderDefaults.openai.model,mode:'single',
    fallbackProviders:[],welcome:getCompanyAssistantWelcome(activeBrand),
    systemPrompt:`Eres ${getCompanyAssistantName(activeBrand)} de San Cristóbal TVS. Responde en español y no inventes información.`,
    temperature:.3,maxTokens:700
@@ -3227,6 +3227,7 @@ async function getAIReply(message){
     currency:'GTQ'
    }
   };
+  if(cfg.endpoint===location.origin+'/api/zip/chat'&&window.TVSBackend){const data=await TVSBackend.chat(payload);return data.reply;}
   const res=await fetch(cfg.endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
   const raw=await res.text();
   let data={};try{data=JSON.parse(raw)}catch(e){data={reply:raw}}
