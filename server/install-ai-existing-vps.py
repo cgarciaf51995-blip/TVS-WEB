@@ -1,7 +1,11 @@
 """Install the narrowly scoped chat integration on the existing TVS service."""
 from pathlib import Path
-import os, json, hashlib, shutil, subprocess, time, tempfile, urllib.request, urllib.error
+import os, json, hashlib, shutil, subprocess, time, tempfile, argparse, urllib.request, urllib.error
 
+parser=argparse.ArgumentParser()
+parser.add_argument('--allow-pending-credit',action='store_true',help='Install when the real OpenAI probe reports quota exhaustion; keep all other checks mandatory.')
+options=parser.parse_args()
+pending_credit=False
 root=Path('/opt/tvs')
 source=Path('/opt/tvs-release-20261111')
 expected={'server/zip-data-api.mjs':'a611b7848425a98911ab5a7f9cdbb3a9feb2fd9c','dist/portal-gys-v6.html':'071ca8b6157d6f513aef35a5a400ece68acb09a4','dist/assets/js/supabase-bridge.js':'d6eb45753a70679e90ae87566565f0e2d411c2e9'}
@@ -42,7 +46,7 @@ import {createChatService} from '/opt/tvs-release-20261111/server/ai-chat.mjs';
 const {Pool}=createRequire('/opt/tvs/package.json')('pg');
 const pool=new Pool({connectionString:process.env.DATABASE_URL,max:1,connectionTimeoutMillis:10000});
 try{const result=await createChatService({query:(q,v)=>pool.query(q,v)})({message:'Decime dos modelos del catálogo y sus precios, brevemente.'});console.log('OPENAI_REAL_TEST_OK',result.model,result.reply)}
-catch(e){console.error('OPENAI_REAL_TEST_FAILED',e.status||500,e.status?e.message:'No se pudo consultar el catálogo.');process.exitCode=1}
+catch(e){console.error('OPENAI_REAL_TEST_FAILED',e.status||500,e.status?e.message:'No se pudo consultar el catálogo.');process.exitCode=e.status===503&&e.message.startsWith('OpenAI no tiene cuota disponible')?42:1}
 finally{await pool.end()}
 """
 # The staging checkout may be private to root. Test a public-code-only copy
@@ -54,7 +58,12 @@ try:
  shutil.copyfile(source/'server/ai-chat.mjs',probe_module)
  probe_module.chmod(0o644)
  probe=probe.replace("'/opt/tvs-release-20261111/server/ai-chat.mjs'",json.dumps(probe_module.as_uri()))
- subprocess.run(['runuser','-u','tvs','--','node','--input-type=module','-e',probe],cwd=root,env=env,check=True)
+ try:
+  subprocess.run(['runuser','-u','tvs','--','node','--input-type=module','-e',probe],cwd=root,env=env,check=True)
+ except subprocess.CalledProcessError as error:
+  if error.returncode!=42 or not options.allow_pending_credit:raise
+  pending_credit=True
+  print('OPENAI_PENDING_CREDIT; se instalará la integración sin respuestas de IA hasta disponer de cuota.',flush=True)
 finally:
  shutil.rmtree(probe_dir)
 try:
@@ -75,7 +84,7 @@ try:
   raise AssertionError('La consulta sin prueba CAPTCHA debe rechazarse.')
  except urllib.error.HTTPError as error:
   assert error.code==400,'Revisar la ruta protegida de chat: '+str(error.code)
- print('OPENAI_DEPLOY_VERIFIED; diseño y reCAPTCHA conservados; respaldo:',backup,flush=True)
+ print(('OPENAI_DEPLOY_PENDING_CREDIT' if pending_credit else 'OPENAI_DEPLOY_VERIFIED')+'; diseño y reCAPTCHA conservados; respaldo:',backup,flush=True)
 except Exception:
  for name in files:
   if existed[name]:shutil.copy2(backup/name,root/name)
