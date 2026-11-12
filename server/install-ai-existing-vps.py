@@ -1,6 +1,6 @@
 """Install the narrowly scoped chat integration on the existing TVS service."""
 from pathlib import Path
-import os, json, hashlib, shutil, subprocess, time, urllib.request, urllib.error
+import os, json, hashlib, shutil, subprocess, time, tempfile, urllib.request, urllib.error
 
 root=Path('/opt/tvs')
 source=Path('/opt/tvs-release-20261111')
@@ -45,7 +45,18 @@ try{const result=await createChatService({query:(q,v)=>pool.query(q,v)})({messag
 catch(e){console.error('OPENAI_REAL_TEST_FAILED',e.status||500,e.status?e.message:'No se pudo consultar el catálogo.');process.exitCode=1}
 finally{await pool.end()}
 """
-subprocess.run(['runuser','-u','tvs','--','node','--input-type=module','-e',probe],cwd=root,env=env,check=True)
+# The staging checkout may be private to root. Test a public-code-only copy
+# under the service working directory instead of opening access to the checkout.
+probe_dir=Path(tempfile.mkdtemp(prefix='.ai-probe-',dir=root))
+try:
+ probe_dir.chmod(0o755)
+ probe_module=probe_dir/'ai-chat.mjs'
+ shutil.copyfile(source/'server/ai-chat.mjs',probe_module)
+ probe_module.chmod(0o644)
+ probe=probe.replace("'/opt/tvs-release-20261111/server/ai-chat.mjs'",json.dumps(probe_module.as_uri()))
+ subprocess.run(['runuser','-u','tvs','--','node','--input-type=module','-e',probe],cwd=root,env=env,check=True)
+finally:
+ shutil.rmtree(probe_dir)
 try:
  for name in files:
   shutil.copyfile(source/name,root/name);(root/name).chmod(0o644)
