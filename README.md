@@ -52,3 +52,15 @@ No recolectar documentos o información sensible real hasta completar autenticac
 `npm run test:security` ejecuta pruebas con respuestas de Google simuladas para no requerir claves reales: acceso administrativo, origen, secretos ocultos, tokens vacíos, inválidos, vencidos, de otro dominio y reutilizados, y selección de formularios. No valida la cuenta ni las claves reales del negocio; esa comprobación debe hacerse después de configurarlas.
 
 Se conservan el nombre San Cristóbal TVS, el diseño del carrusel y su avance automático cada cinco segundos.
+
+## Edición conectada a Supabase
+
+El portal V60 conserva las hojas de estilo, el catálogo inicial y las funciones que dibujan las pantallas del ZIP. La persistencia se realiza mediante `/api/zip/` en el servidor: los usuarios se validan contra `crm.users`, y se reutilizan sus sesiones. Las contraseñas de demostración y las claves del proyecto anterior no se utilizan.
+
+Configura `DATABASE_URL` únicamente en el entorno privado del servidor, con verificación TLS y un rol limitado. `npm start` inicia `server/production.mjs`; `HOST`, `PORT`, `DB_POOL_MAX` y `SECURITY_DATA_DIR` permiten configurar la instalación. La configuración de reCAPTCHA continúa en el servidor.
+
+`server/zip-schema.sql` contiene las tres tablas adicionales de compatibilidad del V60; se aplica una sola vez mediante una cuenta administrativa. No se deben exponer a los roles públicos de Supabase. Los registros privados y archivos se cifran mediante una clave del servidor en `SECURITY_DATA_DIR/zip-data.key`. Incluye esa clave y la base de datos en los respaldos privados; no la publiques en GitHub.
+
+Los datos confirmados se comparten entre dispositivos. Los datos locales de una instalación anterior no se importan automáticamente. El servidor rechaza cambios basados en versiones antiguas, y el portal informa errores de guardado.
+
+Validación: `npm run test:security`, `npm run test:integration` y `npm run build`. La prueba `tests/zip-live-transaction.mjs` está destinada al servidor existente y comprueba operaciones reales dentro de una transacción que se revierte.
