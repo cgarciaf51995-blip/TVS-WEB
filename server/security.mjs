@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 export const formTypes=['login','prequalification','freelance','chat','referral','credit','finalize'];
 const defaults=()=>({enabled:false,siteKey:'',secretKey:'',hostnames:[],forms:Object.fromEntries(formTypes.map(key=>[key,true]))});
 const hash=value=>createHash('sha256').update(value).digest('hex');
-export function createSecurityServer({env=process.env,configPath=resolve('private/security.json'),staticRoot=resolve('dist'),googleVerify}={}){
+export function createSecurityServer({env=process.env,configPath=resolve('private/security.json'),staticRoot=resolve('dist'),googleVerify,apiHandler}={}){
  let config=defaults();
  if(existsSync(configPath))config={...config,...JSON.parse(readFileSync(configPath,'utf8'))};
  if(env.RECAPTCHA_SITE_KEY)config.siteKey=env.RECAPTCHA_SITE_KEY;
@@ -38,6 +38,7 @@ export function createSecurityServer({env=process.env,configPath=resolve('privat
  const server=http.createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://localhost');
+   if(apiHandler&&await apiHandler(req,res))return;
    if(url.pathname.startsWith('/api/security/')){
     if(req.method==='POST'&&!originOK(req))throw fail('Origen no autorizado.',403);
     if(req.method==='GET'&&url.pathname==='/api/security/public')return json(res,200,{enabled:config.enabled,siteKey:config.siteKey,forms:config.forms,configured:Boolean(config.siteKey&&config.secretKey&&config.hostnames.length)});
