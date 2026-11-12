@@ -82,7 +82,7 @@
  async function putFile(id,file){await flush();const r=await fetch('/api/zip/files/'+encodeURIComponent(id),{method:'POST',credentials:'same-origin',headers:{'Content-Type':file.type||'application/octet-stream','X-File-Name':encodeURIComponent(file.name||'archivo')},body:file});const data=await r.json();if(!r.ok)throw new Error(data.error||'No se pudo adjuntar el archivo.');return data;}
  async function getFile(id){const r=await fetch('/api/zip/files/'+encodeURIComponent(id),{credentials:'same-origin',cache:'no-store'});if(r.status===404)return null;if(!r.ok)throw new Error('No se pudo descargar el documento.');return r.blob();}
  async function deleteFile(id){await flush();const r=await fetch('/api/zip/files/'+encodeURIComponent(id),{method:'DELETE',credentials:'same-origin'});if(!r.ok)throw new Error('No se pudo retirar el archivo.');}
- window.TVSBackend={initialize,login,logout,flush,refresh,putFile,getFile,deleteFile,saveProof:(action,receipt)=>{if(receipt)receipts.set(action,receipt);},get user(){return user;},get pending(){return pending;},get ready(){return ready;}};
+ window.TVSBackend={initialize,login,logout,flush,refresh,putFile,getFile,deleteFile,get:k=>cache.get(canonical(k))??null,set:(k,v)=>persist(k,String(v)),saveProof:(action,receipt)=>{if(receipt)receipts.set(action,receipt);},get user(){return user;},get pending(){return pending;},get ready(){return ready;}};
  window.addEventListener('beforeunload',e=>{if(pending||failed){e.preventDefault();e.returnValue='';}});
  window.addEventListener('focus',()=>void refresh());
  setInterval(()=>{if(document.visibilityState==='visible')void refresh();},20000);
