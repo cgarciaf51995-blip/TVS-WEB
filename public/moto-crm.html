@@ -4,6 +4,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MotoCRM · Pipeline</title>
 
+<script src="/assets/js/supabase-bridge.js?v=20261112-1"></script>
+<script src="/api/zip/bootstrap.js"></script>
 <script>
 // El CRM comparte el acceso del portal. Estos controles corresponden a la app local.
 let crmContext=null;
@@ -18,7 +20,7 @@ const crmCompany='TVS';
 const crmPrimary='#0C3688';
 const crmOnPrimary='#FFFFFF';
 const crmKey=key=>`${crmBrand}_${key}`;
-function crmRead(key,fallback){try{const v=JSON.parse(localStorage.getItem(crmKey(key))||'null');return v??fallback}catch{return fallback}}
+function crmRead(key,fallback){try{const v=JSON.parse(TVSBackend.get(crmKey(key))||'null');return v??fallback}catch{return fallback}}
 const crmEscape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 </script>
 <style>
@@ -77,9 +79,9 @@ body[data-company="tvs"]{--nav:#08265F;--nav2:#0C3688}
 const defaultStages=[['NUEVO','Leads entrantes','#7bc7e8'],['CALIFICADO','Contacto inicial','#79b8f3'],['COTIZACION','Cotización','#f0d65d'],['CITA','Cita / prueba','#f3b65b'],['CIERRE','Negociación','#ef8c87'],['GANADO','Ganado','#71cc91'],['PERDIDO','Perdido','#aeb8bf']];
 let stages=crmRead('motoKommoStages',JSON.parse(JSON.stringify(defaultStages)));
 const seed=[];
-let leads=crmRead('motoKommoLeads',[]);let selected=null;let settings=crmRead('motoKommoSettings',null)||{name:'MotoCRM '+crmCompany,assistant:'Asistente '+crmCompany,color:crmPrimary,backendUrl:'http://localhost:4000',integrations:{}};
+let leads=crmRead('motoKommoLeads',[]);let selected=null;let settings=crmRead('motoKommoSettings',null)||{name:'MotoCRM '+crmCompany,assistant:'Asistente '+crmCompany,color:crmPrimary,backendUrl:location.origin,integrations:{}};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-function persist(){localStorage.setItem(crmKey('motoKommoLeads'),JSON.stringify(leads));localStorage.setItem(crmKey('motoKommoSettings'),JSON.stringify(settings));localStorage.setItem(crmKey('motoKommoStages'),JSON.stringify(stages))}
+function persist(){TVSBackend.set(crmKey('motoKommoLeads'),JSON.stringify(leads));TVSBackend.set(crmKey('motoKommoSettings'),JSON.stringify(settings));TVSBackend.set(crmKey('motoKommoStages'),JSON.stringify(stages))}
 function money(n){return new Intl.NumberFormat('es-GT',{style:'currency',currency:'GTQ',maximumFractionDigits:0}).format(n||0)}
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1800)}
 function icon(c){return c==='WhatsApp'?'🟢':c==='Facebook'?'🔵':'🟣'}
@@ -106,7 +108,7 @@ function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===i
 $$('.sidebtn[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));$('#globalSearch').oninput=()=>renderBoard();let stalled=false;$('#filterStalled').onclick=()=>{stalled=!stalled;renderBoard(stalled?'stalled':'');toast(stalled?'Mostrando leads estancados':'Filtro eliminado')};$('#addLead').onclick=()=>$('#leadModal').classList.add('show');$('#addContact').onclick=()=>$('#leadModal').classList.add('show');$$('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).classList.remove('show'));$('#leadModal').onclick=e=>{if(e.target.id==='leadModal')e.currentTarget.classList.remove('show')};$('#stageModal').onclick=e=>{if(e.target.id==='stageModal')e.currentTarget.classList.remove('show')};$('#saveNewLead').onclick=()=>{const name=$('#nName').value.trim(),phone=$('#nPhone').value.trim();if(!name||!phone){toast('Ingrese nombre y teléfono');return}leads.unshift({id:Date.now().toString(),name,phone,channel:$('#nChannel').value,moto:$('#nMoto').value.trim()||'Por definir',amount:+$('#nAmount').value||0,stage:(stages[0]?.[0]||'NUEVO'),owner:$('#nOwner').value,days:0,intent:'Media',note:'Pendiente de análisis por IA.',messages:[]});$('#leadModal').classList.remove('show');renderAll();toast('Lead creado')};$('#closeDrawer').onclick=()=>$('#drawerBack').classList.remove('show');$('#drawerBack').onclick=e=>{if(e.target.id==='drawerBack')e.currentTarget.classList.remove('show')};$('#saveDrawer').onclick=()=>{leads=leads.map(l=>l.id===selected?{...l,name:$('#dName').value,phone:$('#dPhone').value,moto:$('#dMoto').value,amount:+$('#dAmount').value,stage:$('#dStage').value,note:$('#dNote').value,days:0}:l);$('#drawerBack').classList.remove('show');renderAll();toast('Lead actualizado')};$('#sendMessage').onclick=()=>{const text=$('#messageText').value.trim();if(!text||!selected)return;leads=leads.map(l=>l.id===selected?{...l,messages:[...(l.messages||[]),['out',text]],days:0}:l);$('#messageText').value='';renderAll();toast('Mensaje guardado')};$('#saveSettings').onclick=()=>{settings={...settings,name:$('#sName').value||'MotoCRM',assistant:$('#sAssistant').value||'Asistente MotoCRM',color:$('#sColor').value,backendUrl:$('#sBackendUrl').value.trim()||'http://localhost:4000',integrations:collectIntegrationFields()};renderAll();toast('Configuración e integraciones guardadas')};$('#resetData').onclick=()=>{if(confirm('¿Eliminar todos los prospectos de '+crmCompany+' en este navegador? Las etapas se conservarán.')){leads=[];persist();renderAll();toast('Prospectos eliminados de '+crmCompany)}};$('#addTask').onclick=()=>toast('Seleccione un lead para crear su seguimiento');
 const integrationIds=['metaAppId','metaGraphVersion','metaAppSecret','metaAccessToken','metaVerifyToken','waPhoneNumberId','waBusinessAccountId','waDisplayPhone','pageAccessToken','facebookPageId','instagramAccountId','metaSubscribedFields','openaiApiKey','openaiModel','openaiTemperature','openaiPrompt','databaseUrl'];
 function collectIntegrationFields(){const out={};integrationIds.forEach(id=>{const el=document.getElementById(id);if(el)out[id]=el.value});return out}
-function restoreIntegrationFields(){const saved=settings.integrations||{};integrationIds.forEach(id=>{const el=document.getElementById(id);if(el&&saved[id]!==undefined&&saved[id]!=='')el.value=saved[id]})}
+function restoreIntegrationFields(){const saved=settings.integrations||{},secretIds=new Set(['metaAppSecret','metaAccessToken','metaVerifyToken','pageAccessToken','openaiApiKey','databaseUrl']);integrationIds.forEach(id=>{const el=document.getElementById(id);if(!el)return;if(secretIds.has(id)){el.value='';if(settings.configuredSecrets?.[id])el.placeholder='Guardada en el servidor';}else if(saved[id]!==undefined&&saved[id]!=='')el.value=saved[id]})}
 function updateIntegrationDots(){const i=settings.integrations||{};$('#dotMeta').className='status-dot '+(i.metaAppId&&i.metaAccessToken?'ok':'');$('#dotFacebook').className='status-dot '+(i.facebookPageId&&i.pageAccessToken?'ok':'');$('#dotOpenai').className='status-dot '+(i.openaiApiKey?'ok':'');$('#dotDatabase').className='status-dot '+(i.databaseUrl?'ok':'')}
 $$('.integration-item').forEach(btn=>btn.onclick=()=>{$$('.integration-item').forEach(x=>x.classList.remove('active'));btn.classList.add('active');$$('.provider-panel').forEach(p=>p.hidden=true);$('#provider-'+btn.dataset.provider).hidden=false});
 $$('.secret-toggle').forEach(btn=>btn.onclick=e=>{e.preventDefault();const input=$('#'+btn.dataset.secret);input.type=input.type==='password'?'text':'password';btn.textContent=input.type==='password'?'👁':'🙈'});
