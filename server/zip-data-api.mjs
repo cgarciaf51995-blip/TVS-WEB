@@ -83,6 +83,10 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
  }
  async function updateSetting(c,u,input){const {key:k,version}=input;let value=input.value;if(typeof value!=='string'||value.length>9*1024*1024)throw problem('Configuración inválida.');
   let stored=k;if(personalKeys.has(k))stored='user:'+u.id+':'+k;else if(stageKeys.has(k)){if(!manager(u)&&u.role!=='vendedor')throw problem('No tienes permiso para editar las etapas.',403);}else if((publicKeys.has(k)||privateKeys.has(k))&&manager(u)){}else throw problem('No tienes permiso para cambiar esta configuración.',403);
+  if(stageKeys.has(k)){
+   let rows;try{rows=JSON.parse(value)}catch{throw problem('Etapas inválidas.')}
+   if(!Array.isArray(rows)||rows.length<1||rows.length>50||rows.some(r=>!Array.isArray(r)||!/^[A-Z0-9_]{1,100}$/.test(r[0]||'')||typeof r[1]!=='string'||!r[1].trim()||r[1].length>100||/[<>]/.test(r[1])||!/^#[a-f0-9]{6}$/i.test(r[2]||'')))throw problem('Revisa nombre, código y color de las etapas.');
+  }
   if(k==='tvsCatalog'){let rows;try{rows=JSON.parse(value);}catch{throw problem('Catálogo inválido.');}if(!Array.isArray(rows)||rows.length<1||rows.length>500)throw problem('Catálogo inválido.');for(const row of rows)if(!text(row.name)||!Number.isFinite(Number(row.price))||Number(row.price)<0)throw problem('Revisa el nombre y precio de cada motocicleta.');}
   await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['zip-setting:'+stored]);
   if(personalKeys.has(k)){
