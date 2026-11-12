@@ -6,7 +6,7 @@ import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {createZipDataAPI,recordVisible,validateOwnerEdit} from '../server/zip-data-api.mjs';
+import {createZipDataAPI,recordVisible,validateOwnerEdit,splitIntegrationSettings} from '../server/zip-data-api.mjs';
 const owner={id:'11111111-1111-4111-a111-111111111111',username:'prueba',name:'Prueba',role:'freelance'};
 const other={id:'22222222-2222-4222-a222-222222222222',username:'otro',name:'Otro',role:'freelance'};
 const admin={id:'33333333-3333-4333-a333-333333333333',username:'admin',name:'Admin',role:'admin'};
@@ -19,6 +19,7 @@ function database(){
   if(/^(BEGIN|COMMIT|ROLLBACK)$/.test(sql)||sql.startsWith('SELECT pg_advisory'))return result([]);
   if(sql.startsWith('SELECT u.id,u.username'))return result(users.has(v[0])?[users.get(v[0])]:[]);
   if(sql==='SELECT key,value,version FROM crm.zip_settings')return result([...settings.values()]);
+  if(sql.startsWith('SELECT value FROM crm.zip_settings'))return result(settings.has(v[0])?[settings.get(v[0])]:[]);
   if(sql.startsWith('SELECT version FROM crm.zip_settings'))return result(settings.has(v[0])?[settings.get(v[0])]:[]);
   if(sql.startsWith('INSERT INTO crm.zip_settings')){const r={key:v[0],value:v[1],version:(settings.get(v[0])?.version||0)+1};settings.set(v[0],r);return result([r]);}
   if(sql.startsWith('SELECT id,username,name,role,active,updated_at'))return result([]);
@@ -59,3 +60,7 @@ test('referidos cifrados, aislamiento por usuario y protección de versiones',as
 });
 test('archivo cifrado descargable por su dueño y oculto para otros usuarios',async t=>{const {db,request}=await fixture(t);const file=Buffer.from('%PDF-test-no-personal-data');const upload=await request('files/doc_test',{method:'POST',token:tokens.a,bytes:file,headers:{'content-type':'application/pdf','x-file-name':'prueba.pdf'}});assert.equal(upload.status,201);assert.notDeepEqual(db.files.get('doc_test').encrypted_data,file);const download=await request('files/doc_test',{token:tokens.a});assert.equal(download.status,200);assert.deepEqual(download.bytes,file);assert.equal((await request('files/doc_test',{token:tokens.b})).status,404);assert.equal((await request('files/doc_test')).status,401);assert.equal((await request('files/svg_test',{method:'POST',token:tokens.a,bytes:file,headers:{'content-type':'image/svg+xml'}})).status,400);});
 test('las solicitudes públicas requieren una verificación de un solo uso',async t=>{const {request}=await fixture(t);const verified=await request('verify',{method:'POST',data:{action:'prequalification',token:'test-captcha'}});assert.equal(verified.status,200);const data={bucket:'referrals',receipt:verified.data.receipt,payload:{id:'public_test',name:'Prueba pública',phone:'00000000',dpi:'0000000000000',status:'Aprobado'}};const create=await request('public',{method:'POST',data});assert.equal(create.status,201);assert.equal(create.data.payload.status,'Pendiente');assert.equal((await request('public',{method:'POST',data:{...data,payload:{...data.payload,id:'second'}}})).status,403);const anonymous=await request('state');assert.deepEqual(JSON.parse(anonymous.data.values.tvsFreelanceReferrals),[]);});
+
+test('las claves de integraciones se separan de la configuración devuelta al navegador',()=>{const {config,secrets}=splitIntegrationSettings(JSON.stringify({name:'CRM',integrations:{metaAppId:'public-id',openaiApiKey:'test-only',databaseUrl:'test-only'}}));assert.equal(config.integrations.openaiApiKey,undefined);assert.equal(config.integrations.databaseUrl,undefined);assert.equal(config.integrations.metaAppId,'public-id');assert.equal(secrets.openaiApiKey,'test-only');});
+
+test('las credenciales guardadas se cifran y nunca vuelven en el estado del navegador',async t=>{const {db,request}=await fixture(t);const value=JSON.stringify({name:'CRM',integrations:{openaiApiKey:'private-test-key',databaseUrl:'private-test-dsn'}});const saved=await request('save',{method:'POST',token:tokens.a,data:{kind:'setting',key:'tvs_motoKommoSettings',value,version:0}});assert.equal(saved.status,200,JSON.stringify(saved.data));const state=await request('state',{token:tokens.a});assert.ok(!JSON.stringify(state.data).includes('private-test-key'));assert.ok(!JSON.stringify(state.data).includes('private-test-dsn'));const privateRow=[...db.settings.values()].find(r=>r.key.startsWith('secret:'));assert.ok(privateRow);assert.ok(!privateRow.value.includes('private-test-key'));assert.equal(JSON.parse(state.data.values.tvs_motoKommoSettings).configuredSecrets.openaiApiKey,true);});
