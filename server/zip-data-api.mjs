@@ -39,6 +39,13 @@ export function validateOwnerEdit(bucket,previous,next,user){
  }
  if(['paperwork','applications','materials'].includes(bucket))throw problem('Esta operación requiere Gerencia.',403);
 }
+export const integrationSecretFields=new Set(['metaAppSecret','metaAccessToken','metaVerifyToken','pageAccessToken','openaiApiKey','databaseUrl']);
+export function splitIntegrationSettings(value){
+ const config=JSON.parse(value),secrets={};
+ config.integrations={...(config.integrations||{})};
+ for(const k of integrationSecretFields){if(config.integrations[k])secrets[k]=String(config.integrations[k]);delete config.integrations[k];}
+ return {config,secrets};
+}
 async function rawBody(req,limit){let size=0;const chunks=[];for await(const c of req){size+=c.length;if(size>limit)throw problem('El archivo o formulario supera el tamaño permitido.',413);chunks.push(c);}return Buffer.concat(chunks);}
 async function body(req){try{return JSON.parse((await rawBody(req,12*1024*1024)).toString('utf8'));}catch(e){if(e.status)throw e;throw problem('Formulario inválido.');}}
 async function hashPassword(p){if(typeof p!=='string'||p.length<16||p.length>200)throw problem('La contraseña debe tener entre 16 y 200 caracteres.');const salt=randomBytes(16).toString('hex');const k=await scrypt(p,salt,64,{N:32768,r:8,p:1,maxmem:64*1024*1024});return `scrypt$${salt}$${k.toString('hex')}`;}
@@ -74,10 +81,19 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
   values.tvsFreelanceReferrals=values.tvs_FreelanceReferrals||'[]';
   return {values,versions,user:u,project:'wvhzqukukzzwoevbgare'};
  }
- async function updateSetting(c,u,input){const {key:k,value,version}=input;if(typeof value!=='string'||value.length>9*1024*1024)throw problem('Configuración inválida.');
+ async function updateSetting(c,u,input){const {key:k,version}=input;let value=input.value;if(typeof value!=='string'||value.length>9*1024*1024)throw problem('Configuración inválida.');
   let stored=k;if(personalKeys.has(k))stored='user:'+u.id+':'+k;else if(stageKeys.has(k)){if(!manager(u)&&u.role!=='vendedor')throw problem('No tienes permiso para editar las etapas.',403);}else if((publicKeys.has(k)||privateKeys.has(k))&&manager(u)){}else throw problem('No tienes permiso para cambiar esta configuración.',403);
   if(k==='tvsCatalog'){let rows;try{rows=JSON.parse(value);}catch{throw problem('Catálogo inválido.');}if(!Array.isArray(rows)||rows.length<1||rows.length>500)throw problem('Catálogo inválido.');for(const row of rows)if(!text(row.name)||!Number.isFinite(Number(row.price))||Number(row.price)<0)throw problem('Revisa el nombre y precio de cada motocicleta.');}
   await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['zip-setting:'+stored]);
+  if(personalKeys.has(k)){
+   const {config,secrets}=splitIntegrationSettings(value),secretKey='secret:'+stored;
+   const existing=(await c.query('SELECT value FROM crm.zip_settings WHERE key=$1',[secretKey])).rows[0];
+   const saved=existing?await unseal('integration-secrets',stored,Buffer.from(existing.value,'base64')):{};
+   Object.assign(saved,secrets);
+   config.configuredSecrets=Object.fromEntries(Object.keys(saved).map(k=>[k,true]));
+   if(Object.keys(secrets).length){const ciphertext=(await seal('integration-secrets',stored,saved)).toString('base64');await c.query('INSERT INTO crm.zip_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,version=crm.zip_settings.version+1,updated_at=now()',[secretKey,ciphertext]);}
+   value=JSON.stringify(config);
+  }
   const prev=(await c.query('SELECT version FROM crm.zip_settings WHERE key=$1 FOR UPDATE',[stored])).rows[0];if(Number(prev?.version||0)!==Number(version||0))throw problem('Otra persona actualizó estos datos. Recarga antes de guardar.',409);
   const result=await c.query('INSERT INTO crm.zip_settings(key,value,version) VALUES($1,$2,1) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,version=crm.zip_settings.version+1,updated_at=now() RETURNING version',[stored,value]);
   if(k==='tvsCatalog'){
