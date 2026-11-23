@@ -69,6 +69,7 @@ function detail(){
  var m=document.getElementById('bikeModal');if(m){m.setAttribute('tabindex','-1');m.focus();}
 }
 document.addEventListener('click',function(e){
+ if(e.target.closest('.p360-brand')){closeExplorer();return;}
  var cat=e.target.closest('[data-p360-category]');if(cat){filter=cat.dataset.p360Category;refreshMenu();if(explorer){var rows=filtered();if(rows.length)modelIndex=rows[0].index;renderExplorer();}return;}
  var item=e.target.closest('[data-p360-model]');if(item){var i=Number(item.dataset.p360Model);if(explorer)choose(i);else openExplorer(i);return;}
  var color=e.target.closest('[data-p360-color]');if(color&&current()){
