@@ -13,7 +13,7 @@ root = Path('/opt/tvs')
 source = Path(__file__).resolve().parent.parent
 portal = 'dist/portal-gys-v6.html'
 files = [portal, 'dist/assets/js/products-360.js', 'dist/assets/css/products-360.css']
-expected_portal = '2efe1f3ffcb78b2ad9e237204c1cf28b3737cfd9'
+expected_portals = {'2efe1f3ffcb78b2ad9e237204c1cf28b3737cfd9', '03120329bcbdbf01a6940ac27f55e7b78f5241e9'}
 
 def blob_hash(data):
     return hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
@@ -46,7 +46,7 @@ if all((root / name).is_file() and (root / name).read_bytes() == (source / name)
         assert fetch(name[5:]) == (source / name).read_bytes(), 'Revisá la publicación HTTP: ' + name
     print('PRODUCTS_360_VERIFIED: la misma versión ya está publicada.')
     raise SystemExit(0)
-assert blob_hash((root / portal).read_bytes()) == expected_portal, 'La web instalada tiene otros cambios. No se sobrescribió nada; revisá la versión antes de instalar.'
+assert blob_hash((root / portal).read_bytes()) in expected_portals | {blob_hash((source / portal).read_bytes())}, 'La web instalada tiene otros cambios. No se sobrescribió nada; revisá la versión antes de instalar.'
 for name in ['assets/js/products-360.js', 'assets/css/products-360.css']:
     assert (source / 'public' / name).read_bytes() == (source / 'dist' / name).read_bytes(), 'Las copias public/dist no coinciden.'
 assert (source / 'public/portal-gys-v6.html').read_bytes() == (source / portal).read_bytes()
@@ -79,3 +79,4 @@ except Exception:
             (root / name).unlink()
     print('Se restauraron los archivos anteriores. Respaldo:', backup)
     raise
+
