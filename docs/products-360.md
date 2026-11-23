@@ -14,7 +14,7 @@ Los dos campos son `viewer360Enabled` y `viewer360Url`, dentro del catálogo que
 Se admiten enlaces de modelo Sketchfab y enlaces /models/ID/embed. No se admite pegar código iframe, claves privadas, otros proveedores ni enlaces HTTP. El visor se carga solamente cuando el visitante lo abre y se retira al cerrar. Conserva la atribución del proveedor y ofrece abrirlo en otra pestaña si la incrustación no carga.
 
 Ejemplo de un visor existente para **TVS Apache RTR 200 4V**: https://sketchfab.com/3d-models/tvs-apache-rtr-200-4v-98b4185db6154cffb54e41aa0888b708
-Es una referencia de un tercero: comprobar que corresponde a la moto antes de habilitarlo. No se verificó visualmente el visor desde esta sesión.
+Es una referencia de un tercero: comprobar que corresponde a la moto antes de habilitarlo. Se abrió este visor en una pestaña externa y se comprobó el giro interactivo. La incrustación permaneció en blanco en el navegador de prueba; no se considera verificada dentro de la ventana de la aplicación.
 
 ## Publicación en el VPS existente
 
@@ -34,6 +34,9 @@ Si la web instalada tiene otros cambios, se detiene antes de sobrescribirla.
 
 ## Validación
 
-Se comprobó sintaxis y 24 condiciones de normalización de URL, activación, categorías y escape de texto con el runtime JavaScript disponible. Los tests reproducibles están en `tests/products-360.test.mjs`; el instalador los ejecuta en Node antes de publicar.
+Pasaron los 14 tests reproducibles de `tests/products-360.test.mjs` en Node. También se comprobó en navegador la navegación por categorías, la categoría vacía, el escenario y sus controles, el modal original con cotizador y ficha técnica, y el guardado y reapertura de los ajustes 360 en una vista previa local sin escrituras en producción. La revisión móvil se hizo con un iframe de 390 px.
 
-Pendientes en el servidor: publicación, prueba visual de escritorio/móvil y comprobación del visor elegido. Probar también Ver detalle → colores → cotizador → precalificación y la persistencia del enlace al volver a editar.
+Se ajustó la presentación al boceto aprobado: cabecera azul, botón Nuestros productos con acento amarillo, tarjetas por categoría, lista lateral, túnel blanco, plataforma, panel de colores y modelos relacionados. Se conservaron los seis modelos y fotografías del catálogo actual. Varias fotos del catálogo son imágenes genéricas o enlaces que no cargan; los recursos que fallan muestran “Fotografía por actualizar” en las nuevas vistas. No se sustituyeron por imágenes de otros modelos.
+
+Pendiente en producción: instalar la actualización y verificar la incrustación 3D con el enlace elegido. Los cambios de la prueba local no se publicaron en Supabase ni en el VPS.
+
