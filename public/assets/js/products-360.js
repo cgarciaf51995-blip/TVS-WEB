@@ -108,7 +108,8 @@ function extendEditor(){
   var b=index!==''&&index!==undefined?catalog()[Number(index)]:null;b=b||{};
   var field=document.createElement('fieldset');field.className='p360-admin full';
   field.innerHTML='<legend>Visor 360° existente</legend><label><input type="checkbox" name="viewer360Enabled" '+(b.viewer360Enabled===true?'checked':'')+'> Activar vista 360° para este modelo</label><label>Enlace del modelo en Sketchfab<input type="url" name="viewer360Url" placeholder="https://sketchfab.com/3d-models/..." value="'+esc(b.viewer360Url||'')+'"></label><p>Usá el visor del modelo correspondiente. El botón solo se muestra cuando está activado y el enlace es válido. No cambia las fotos, los colores ni el cotizador.</p><button type="button" class="p360-preview">Vista previa del visor</button><p class="p360-editor-error" role="alert"></p>';
-  var submit=form.querySelector('[type="submit"]');if(submit)submit.parentNode.insertBefore(field,submit);else form.appendChild(field);
+  var submit=form.querySelector('[type="submit"]'),actions=submit&&submit.closest('.form-actions');
+  if(actions&&actions.parentNode===form)form.insertBefore(field,actions);else form.appendChild(field);
   var cat=form.querySelector('[name="cat"]');if(cat&&!cat.querySelector('[value="semiautomatico"]')){var opt=document.createElement('option');opt.value='semiautomatico';opt.textContent='Semiautomática';cat.appendChild(opt);if(b.cat==='semiautomatico')cat.value=b.cat;}
   var url=field.querySelector('[name="viewer360Url"]'),toggle=field.querySelector('[name="viewer360Enabled"]'),error=field.querySelector('[role="alert"]');
   function validate(){
