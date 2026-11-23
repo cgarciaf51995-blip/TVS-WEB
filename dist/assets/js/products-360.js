@@ -32,7 +32,7 @@ function refreshMenu(){
 }
 function closeMenu(){if(menu)menu.hidden=true;if(menuButton)menuButton.setAttribute('aria-expanded','false');}
 function current(){return catalog()[modelIndex];}
-function choose(i){if(!catalog()[i])return;modelIndex=i;renderExplorer();}
+function choose(i){if(!catalog()[i])return;if(filter!=='all'&&category(catalog()[i])!==filter)filter=category(catalog()[i]);modelIndex=i;renderExplorer();}
 function openExplorer(i){
  closeMenu();returnFocus=document.activeElement;modelIndex=i;
  if(!explorer){
@@ -42,22 +42,54 @@ function openExplorer(i){
 }
 function closeExplorer(){if(!explorer)return;explorer.remove();explorer=null;lock();if(returnFocus&&returnFocus.isConnected)returnFocus.focus();}
 function specs(b){
- var result=[];if(b.cc)result.push(['Cilindrada',b.cc]);
- Object.keys(b.spec||{}).slice(0,3).forEach(function(k){if(b.spec[k])result.push([k,b.spec[k]]);});
+ var all=Object.keys(b.spec||{}).map(function(k){return [k,b.spec[k]];});
+ (b.specSections||[]).forEach(function(section){(section.rows||[]).forEach(function(row){if(Array.isArray(row)&&row.length>1&&!all.some(function(p){return p[0]===row[0];}))all.push(row);});});
+ all=all.filter(function(p){return p[1];}).sort(function(a,c){return Number(/potencia|peso/i.test(c[0]))-Number(/potencia|peso/i.test(a[0]));});
+ var result=b.cc?[['Cilindrada',b.cc]]:[];
+ result=result.concat(all.slice(0,2));
  return result.map(function(p){return '<div><small>'+esc(p[0])+'</small><strong>'+esc(p[1])+'</strong></div>';}).join('');
+}
+function navigation(){
+ return '<nav class="p360-navigation" aria-label="Navegación de productos">'+button('Inicio','home')+button('Nuestros productos','products','class="p360-nav-active"')+button('Financiamiento','finance')+button('Portales','portals')+'</nav>';
+}
+function tunnel(){
+ var frames='',points=[[110,-95],[890,-95],[1150,690],[-150,690]];
+ [1,.80,.63,.49,.37,.27,.19,.13,.085].forEach(function(scale){
+  var coords=points.map(function(p){return (500+(p[0]-500)*scale)+','+(245+(p[1]-245)*scale);}).join(' ');
+  frames+='<polygon points="'+coords+'" fill="none" stroke="#ffffff" stroke-width="'+(24*scale+2)+'" opacity=".92"/>';
+ });
+ return '<svg class="p360-tunnel" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="p360-room-light"><stop offset="0" stop-color="#fff"/><stop offset=".53" stop-color="#f1f2f3"/><stop offset="1" stop-color="#cdd2d7"/></radialGradient><linearGradient id="p360-floor" x2="0" y2="1"><stop stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#e8ebee"/></linearGradient></defs><rect width="1000" height="640" fill="url(#p360-room-light)"/>'+frames+'<path d="M0 430 L500 245 L1000 430 V640 H0Z" fill="url(#p360-floor)"/></svg>';
+}
+function colorControls(b){
+ if(!(b.colors||[]).length)return '';
+ return '<h3>Colores disponibles</h3><div class="p360-colors">'+b.colors.map(function(c,i){
+  var hex=/^#[a-f0-9]{3}(?:[a-f0-9]{3})?$/i.test(c.hex||'')?c.hex:'#dbe3ef';
+  return '<button type="button" data-p360-color="'+i+'" title="'+esc(c.name||'Color')+'" aria-label="'+esc(c.name||'Color')+'" aria-pressed="false" style="background:'+hex+'"></button>';
+ }).join('')+'</div><p id="p360-color-label" aria-live="polite">Seleccioná un color</p>';
 }
 function renderExplorer(){
  if(!explorer)return;
  var b=current();if(!b){closeExplorer();return;}
- var list=filtered();if(!list.some(function(x){return x.index===modelIndex;}))filter='all';
- explorer.innerHTML='<header class="p360-top">'+brand()+button('Cerrar ✕','close','class="p360-close"')+'</header><div class="p360-content">'+tabs()+'<div class="p360-layout"><aside class="p360-rail" aria-label="Elegir modelo">'+filtered().map(function(x){return '<button type="button" data-p360-model="'+x.index+'" aria-pressed="'+(x.index===modelIndex)+'"><strong>'+esc(x.bike.name)+'</strong><img loading="lazy" src="'+esc(image(x.bike))+'" alt=""></button>';}).join('')+'</aside><div class="p360-stage"><h1>'+esc(b.name)+'</h1><div class="p360-podium"><img id="p360-main-image" src="'+esc(image(b))+'" alt="'+esc(b.name)+'"></div><div class="p360-stage-nav">'+button('‹ Anterior','previous')+button('Siguiente ›','next')+'</div></div><aside class="p360-info"><h2>Conocé tu próximo modelo</h2><div class="p360-specs">'+specs(b)+'</div>'+((b.colors||[]).length?'<h3>Colores disponibles</h3><div class="p360-colors">'+b.colors.map(function(c,i){var hex=/^#[a-f0-9]{3}(?:[a-f0-9]{3})?$/i.test(c.hex||'')?c.hex:'#dbe3ef';return '<button type="button" data-p360-color="'+i+'" title="'+esc(c.name||'Color')+'" aria-label="'+esc(c.name||'Color')+'" style="background:'+hex+'"></button>';}).join('')+'</div><p id="p360-color-label" aria-live="polite"></p>':'')+(enabled(b)?button('360° · Explorar en 360°','viewer','data-p360-index="'+modelIndex+'" class="p360-outline"'):'')+button('Cotizar por WhatsApp','quote','class="p360-quote"')+button('Ver detalle','detail','class="p360-primary"')+'<p class="p360-note">Consultá la ficha técnica, opciones de pago y precalificación en Ver detalle.</p></aside></div><section class="p360-related"><h2>También te puede interesar</h2><div>'+catalog().map(function(x,i){return {bike:x,index:i};}).filter(function(x){return x.index!==modelIndex&&category(x.bike)!=='accesorios';}).slice(0,3).map(function(x){return '<button type="button" data-p360-model="'+x.index+'"><strong>'+esc(x.bike.name)+'</strong><img loading="lazy" src="'+esc(image(x.bike))+'" alt=""><span>Ver modelo →</span></button>';}).join('')+'</div></section></div>';
+ var list=filtered();
+ if(!list.length){explorer.innerHTML='<header class="p360-top"><div class="p360-top-inner">'+brand()+navigation()+button('✕','close','class="p360-close" aria-label="Cerrar nuestros productos"')+'</div></header><div class="p360-content">'+tabs()+'<p class="p360-empty">No hay modelos publicados en esta categoría.</p></div>';return;}
+ if(!list.some(function(x){return x.index===modelIndex;})){modelIndex=list[0].index;b=current();}
+ var description=b.description||b.subtitle||'Elegí tu color y consultá la ficha técnica, las características y las opciones de compra de este modelo.';
+ explorer.innerHTML='<header class="p360-top"><div class="p360-top-inner">'+brand()+navigation()+button('✕','close','class="p360-close" aria-label="Cerrar nuestros productos"')+'</div></header>'+
+ '<div class="p360-content">'+tabs()+'<div class="p360-layout">'+
+ '<aside class="p360-rail" aria-label="Elegir modelo">'+filtered().map(function(x){return '<button type="button" data-p360-model="'+x.index+'" aria-pressed="'+(x.index===modelIndex)+'"><strong>'+esc(x.bike.name)+'</strong><img loading="lazy" src="'+esc(image(x.bike))+'" alt="">'+(x.index===modelIndex?'<span class="p360-rail-selected" aria-hidden="true">›</span>':'')+'</button>';}).join('')+'</aside>'+
+ '<div class="p360-display">'+tunnel()+'<div class="p360-stage"><h1>'+esc(b.name)+'</h1><div class="p360-podium"><img id="p360-main-image" src="'+esc(image(b))+'" alt="'+esc(b.name)+'"></div><div class="p360-stage-nav">'+button('‹','previous','aria-label="Modelo anterior"')+button('›','next','aria-label="Modelo siguiente"')+'</div><p class="p360-stage-caption">'+(enabled(b)?'Abrí el visor para explorar todos los ángulos':'Fotografías del modelo · Elegí un color para ver sus imágenes')+'</p></div>'+
+ '<aside class="p360-info"><h2>Diseño y rendimiento</h2><p class="p360-description">'+esc(description)+'</p>'+colorControls(b)+
+ (enabled(b)?button('<span class="p360-icon360" aria-hidden="true">360°</span> Explorar en 360°','viewer','data-p360-index="'+modelIndex+'" class="p360-outline"'):'')+
+ button('<span aria-hidden="true">◉</span> Cotizar por WhatsApp','quote','class="p360-quote"')+button('<span aria-hidden="true">▤</span> Ver detalle','detail','class="p360-primary"')+
+ '<div class="p360-specs">'+specs(b)+'</div></aside></div></div>'+
+ '<section class="p360-related"><h2>También te puede interesar</h2><div>'+catalog().map(function(x,i){return {bike:x,index:i};}).filter(function(x){return x.index!==modelIndex&&category(x.bike)!=='accesorios';}).sort(function(a,c){return Number(category(c.bike)===category(b))-Number(category(a.bike)===category(b));}).slice(0,3).map(function(x){return '<button type="button" data-p360-model="'+x.index+'"><strong>'+esc(x.bike.name)+'</strong><img loading="lazy" src="'+esc(image(x.bike))+'" alt=""><span class="p360-related-go" aria-hidden="true">›</span></button>';}).join('')+'</div></section></div>';
 }
 function showViewer(b,preview){
  var url=viewerUrl(b.viewer360Url);if(!url)return;
  if(viewer)closeViewer();
  var prev=document.activeElement;
  viewer=document.createElement('dialog');viewer.className='p360-viewer';
- viewer.innerHTML='<div class="p360-viewer-head"><h2>'+esc(b.name)+' · 360°</h2>'+button('Cerrar ✕','close-viewer')+'</div><p>Visor externo de Sketchfab. La versión y los colores del modelo 3D pueden variar.</p><iframe title="Vista 360 de '+esc(b.name)+'" src="'+esc(url)+'" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-pointer-lock" referrerpolicy="strict-origin-when-cross-origin"></iframe><p><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Abrir visor en otra pestaña ↗</a>'+(preview?' · Vista previa: guardá el modelo para publicar esta configuración.':'')+'</p>';
+ viewer.innerHTML='<div class="p360-viewer-head"><h2>'+esc(b.name)+' · 360°</h2>'+button('Cerrar ✕','close-viewer')+'</div><p>Visor externo de Sketchfab. La versión y los colores del modelo 3D pueden variar.</p><iframe title="Vista 360 de '+esc(b.name)+'" src="'+esc(url)+'" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-pointer-lock" referrerpolicy="strict-origin-when-cross-origin"></iframe><p><a class="p360-external" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Abrir visor 360° en otra pestaña</a>'+(preview?' · Vista previa: guardá el modelo para publicar esta configuración.':'')+'</p>';
  document.body.appendChild(viewer);viewer._returnFocus=prev;
  viewer.addEventListener('cancel',function(e){e.preventDefault();closeViewer();});
  viewer.showModal();lock();
@@ -68,12 +100,27 @@ function detail(){
  window.openBike(b.name);
  var m=document.getElementById('bikeModal');if(m){m.setAttribute('tabindex','-1');m.focus();}
 }
+function productPhotoEvent(e){
+ var img=e.target;
+ if(!img||img.tagName!=='IMG'||!img.closest('.p360-menu,.p360-explorer'))return;
+ if(e.type==='error'){
+  img.hidden=true;
+  if(!img.nextElementSibling||!img.nextElementSibling.classList.contains('p360-photo-unavailable')){
+   var placeholder=document.createElement('span');placeholder.className='p360-photo-unavailable';placeholder.textContent='Fotografía por actualizar';img.insertAdjacentElement('afterend',placeholder);
+  }
+ }else{
+  img.hidden=false;
+  if(img.nextElementSibling&&img.nextElementSibling.classList.contains('p360-photo-unavailable'))img.nextElementSibling.remove();
+ }
+}
+document.addEventListener('error',productPhotoEvent,true);
+document.addEventListener('load',productPhotoEvent,true);
 document.addEventListener('click',function(e){
  if(e.target.closest('.p360-brand')){closeExplorer();return;}
  var cat=e.target.closest('[data-p360-category]');if(cat){filter=cat.dataset.p360Category;refreshMenu();if(explorer){var rows=filtered();if(rows.length)modelIndex=rows[0].index;renderExplorer();}return;}
  var item=e.target.closest('[data-p360-model]');if(item){var i=Number(item.dataset.p360Model);if(explorer)choose(i);else openExplorer(i);return;}
  var color=e.target.closest('[data-p360-color]');if(color&&current()){
-  var c=(current().colors||[])[Number(color.dataset.p360Color)],img=document.getElementById('p360-main-image');if(c&&img){img.src=c.img||(c.images||[])[0]||image(current());document.getElementById('p360-color-label').textContent=c.name||'Color';}return;
+  var c=(current().colors||[])[Number(color.dataset.p360Color)],img=document.getElementById('p360-main-image');if(c&&img){img.src=c.img||(c.images||[])[0]||image(current());document.getElementById('p360-color-label').textContent=c.name||'Color';explorer.querySelectorAll('[data-p360-color]').forEach(function(node){node.setAttribute('aria-pressed',String(node===color));});}return;
  }
  var a=e.target.closest('[data-p360-action]');
  if(a){
@@ -82,6 +129,10 @@ document.addEventListener('click',function(e){
   else if(action==='close-viewer')closeViewer();
   else if(action==='close')closeExplorer();
   else if(action==='detail')detail();
+  else if(action==='products'){closeExplorer();filter='moto';refreshMenu();menu.hidden=false;menuButton.setAttribute('aria-expanded','true');menuButton.focus();}
+  else if(action==='home'||action==='finance'||action==='portals'){
+   closeExplorer();var target=document.getElementById(action==='home'?'inicio':action==='finance'?'financiamiento':'accesos');if(target)target.scrollIntoView({block:'start'});
+  }
   else if(action==='quote'&&current()&&typeof waBike==='function')waBike(current().name);
   else if(action==='previous'||action==='next'){var rows=filtered(),pos=rows.findIndex(function(x){return x.index===modelIndex;});if(rows.length)choose(rows[(pos+(action==='next'?1:-1)+rows.length)%rows.length].index);}
   return;
@@ -107,7 +158,7 @@ function extendEditor(){
   var form=document.getElementById('bikeAdminForm');if(!form)return;
   var b=index!==''&&index!==undefined?catalog()[Number(index)]:null;b=b||{};
   var field=document.createElement('fieldset');field.className='p360-admin full';
-  field.innerHTML='<legend>Visor 360° existente</legend><label><input type="checkbox" name="viewer360Enabled" '+(b.viewer360Enabled===true?'checked':'')+'> Activar vista 360° para este modelo</label><label>Enlace del modelo en Sketchfab<input type="url" name="viewer360Url" placeholder="https://sketchfab.com/3d-models/..." value="'+esc(b.viewer360Url||'')+'"></label><p>Usá el visor del modelo correspondiente. El botón solo se muestra cuando está activado y el enlace es válido. No cambia las fotos, los colores ni el cotizador.</p><button type="button" class="p360-preview">Vista previa del visor</button><p class="p360-editor-error" role="alert"></p>';
+  field.innerHTML='<legend>Administración del 360°</legend><div class="p360-admin-heading"><span class="p360-admin-gear" aria-hidden="true">⚙</span><h3>Administración del modelo</h3><p>Activá o desactivá la vista 360° por modelo y conectá un visor existente.</p></div><div class="p360-admin-controls"><h4>Catálogo · '+esc(b.name||'Nuevo modelo')+'</h4><label class="p360-switch"><input type="checkbox" name="viewer360Enabled" '+(b.viewer360Enabled===true?'checked':'')+'> Activar vista 360° para este modelo</label><label>Enlace del modelo en Sketchfab<input type="url" name="viewer360Url" placeholder="https://sketchfab.com/3d-models/..." value="'+esc(b.viewer360Url||'')+'"></label><p>Usá el visor del modelo correspondiente. El botón solo se muestra cuando está activado y el enlace es válido. No cambia las fotos, los colores ni el cotizador.</p><button type="button" class="p360-preview">Vista previa del visor</button><p class="p360-editor-error" role="alert"></p></div>';
   var submit=form.querySelector('[type="submit"]'),actions=submit&&submit.closest('.form-actions');
   if(actions&&actions.parentNode===form)form.insertBefore(field,actions);else form.appendChild(field);
   var cat=form.querySelector('[name="cat"]');if(cat&&!cat.querySelector('[value="semiautomatico"]')){var opt=document.createElement('option');opt.value='semiautomatico';opt.textContent='Semiautomática';cat.appendChild(opt);if(b.cat==='semiautomatico')cat.value=b.cat;}
@@ -131,7 +182,7 @@ function init(){
   menuButton=document.createElement('button');menuButton.type='button';menuButton.className='p360-menu-button';menuButton.textContent='Nuestros productos';menuButton.setAttribute('aria-expanded','false');menuButton.setAttribute('aria-controls','p360-menu');
   anchor.replaceWith(menuButton);menu=document.createElement('section');menu.id='p360-menu';menu.className='p360-menu';menu.setAttribute('aria-label','Nuestros productos');menu.hidden=true;
   document.querySelector('.proposal-site-header').appendChild(menu);
-  menuButton.onclick=function(){if(!menu.hidden){closeMenu();return;}filter='all';refreshMenu();menu.hidden=false;menuButton.setAttribute('aria-expanded','true');};
+  menuButton.onclick=function(){if(!menu.hidden){closeMenu();return;}filter='moto';refreshMenu();menu.hidden=false;menuButton.setAttribute('aria-expanded','true');};
  }
  extendEditor();
  var modal=document.getElementById('bikeModal');
@@ -146,3 +197,4 @@ function init(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
