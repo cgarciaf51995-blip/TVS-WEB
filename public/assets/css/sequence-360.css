@@ -1,0 +1,38 @@
+/* Scoped to the existing image gallery and its catalog editor. */
+#bikeModal .rb-gallery{position:relative}
+.rb360-entry{position:absolute!important;top:14px;left:14px;z-index:4;border:1px solid #0d438e!important;border-radius:8px;background:#fff!important;color:#0d438e!important;padding:11px 15px!important;font:inherit;font-size:14px!important;font-weight:850;box-shadow:0 4px 12px #062d6320;cursor:pointer}
+#bikeModal .rb-gallery.rb360-active>:not(.rb360-layer){visibility:hidden!important;pointer-events:none!important}
+.rb360-layer{position:absolute;inset:0;display:flex;flex-direction:column;z-index:5;background:#fff;border-radius:inherit;color:#12345c}
+.rb360-view{display:flex;align-items:center;justify-content:center;position:relative;min-height:120px;flex:1;overflow:hidden;touch-action:pan-y;cursor:ew-resize;outline-offset:-4px;background:#fff}
+.rb360-view img{width:100%;height:100%;max-height:100%;object-fit:contain;user-select:none;pointer-events:none;transition:none!important;position:absolute;inset:0}
+.rb360-view img[hidden],.rb360-image-error[hidden]{display:none!important}
+.rb360-image-error{padding:24px;color:#a4232d;text-align:center;font-size:14px}
+.rb360-controls{position:relative;flex-shrink:0;padding:10px 16px 12px;background:#f4f8fd;border-top:1px solid #dae5f2}
+.rb360-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.rb360-actions button{font:inherit;font-size:13px!important;font-weight:750;min-width:38px;min-height:36px!important;border:1px solid #bdcfe6!important;border-radius:6px!important;padding:7px 10px!important;color:#0b3b7d!important;background:#fff!important;cursor:pointer}
+.rb360-actions button:disabled{opacity:.4;cursor:default}
+.rb360-range-label{display:block;font-size:12px;color:#506884;margin:9px 0 0}
+.rb360-range-label input{display:block;width:100%;padding:0!important;margin:7px 0!important;min-height:18px!important;accent-color:#0c56aa}
+.rb360-status,.rb360-hint{font-size:12px;text-align:center;margin:4px 0!important;line-height:1.35;color:#526b87}
+#bikeModal .rb-gallery:fullscreen{width:100vw!important;height:100dvh!important;max-height:none!important;min-height:100dvh!important;border-radius:0;background:white}
+.rb360-admin{grid-column:1/-1;min-width:0;margin:16px 0;padding:20px;border:1px solid #c3d5eb;border-radius:10px;background:#f4f8fe}
+.rb360-admin legend{font-size:18px;font-weight:850;color:#103c7b;padding:0 8px}
+.rb360-admin>label{display:block;margin:12px 0;font-size:14px;font-weight:750}
+.rb360-admin p{font-size:13px;line-height:1.5;color:#50647f}
+.rb360-admin select{display:block;width:100%;padding:10px;margin-top:8px;background:#fff;border:1px solid #c2d1e4;border-radius:6px;font:inherit;font-size:14px}
+.rb360-enable{display:flex!important;align-items:center;gap:10px}
+.rb360-enable input{width:19px;height:19px;accent-color:#0a55a7;margin:0}
+.rb360-upload-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0}
+.rb360-upload{position:relative;display:inline-flex;align-items:center;justify-content:center;background:#0b4c9e;color:white;padding:11px 17px;border-radius:7px;font-size:14px;font-weight:800;overflow:hidden;cursor:pointer}
+.rb360-upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.rb360-clear{padding:10px 15px;background:#fff;color:#284d7d;border:1px solid #bbcce2;border-radius:7px;font:inherit;font-size:13px;cursor:pointer}
+.rb360-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px;max-height:390px;overflow:auto}
+.rb360-thumb{position:relative;background:white;border:1px solid #cbd8e8;border-radius:8px;overflow:hidden;padding:8px}
+.rb360-thumb>span{position:absolute;top:5px;left:5px;background:#e1eafa;color:#123a73;font-size:11px;padding:2px 6px;border-radius:20px;font-weight:800}
+.rb360-thumb img{display:block;width:100%;height:90px;object-fit:contain}
+.rb360-thumb>div{display:flex;justify-content:center;gap:4px;margin-top:5px}
+.rb360-thumb button{border:1px solid #c4d3e7;background:#f3f7fc;color:#274d7b;padding:5px 7px;min-height:30px!important;border-radius:5px;font:inherit;font-size:12px;cursor:pointer}
+.rb360-thumb button:disabled{opacity:.35}
+.rb360-admin .rb360-admin-error{color:#b0182a;font-weight:700}
+.rb360-entry:focus-visible,.rb360-layer button:focus-visible,.rb360-view:focus-visible,.rb360-admin button:focus-visible,.rb360-upload:focus-within{outline:3px solid #ffd000;outline-offset:2px}
+@media(max-width:600px){.rb360-entry{top:8px;left:8px;padding:8px 10px!important;font-size:12px!important}.rb360-controls{padding:7px 10px}.rb360-actions{gap:5px}.rb360-actions button{font-size:12px!important;padding:6px 8px!important;min-width:32px}.rb360-hint{font-size:11px}.rb360-admin{padding:12px}.rb360-admin-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.rb360-thumb img{height:72px}}
