@@ -55,6 +55,7 @@ test('removes the new navigation/showroom and preserves original rich detail cod
  let html=readFileSync(new URL('public/portal-gys-v6.html',root),'utf8');
  assert.ok(!html.includes('assets/js/products-360.js'));assert.ok(!html.includes('assets/css/products-360.css'));
  assert.ok(html.includes('assets/js/sequence-360.js'));assert.ok(html.includes("spin360:JSON.parse(f.get('spin360')||'null')"));
+ html=html.replace('<link rel="stylesheet" href="/assets/css/whatsapp-inbox.css?v=20261127">\n<script defer src="/assets/js/whatsapp-inbox.js?v=20261127"></script>\n','');
  html=html.replace('<link rel="stylesheet" href="assets/css/sequence-360.css?v=20261124">\n<script defer src="assets/js/sequence-360.js?v=20261124"></script>\n','').replace(",spin360:JSON.parse(f.get('spin360')||'null')",'');
  const data=Buffer.from(html),hash=createHash('sha1').update(Buffer.from('blob '+data.length+'\0')).update(data).digest('hex');
  assert.equal(hash,'2efe1f3ffcb78b2ad9e237204c1cf28b3737cfd9','Original page, rich modal, pricing and payment code must stay unchanged.');
