@@ -3,6 +3,7 @@ import {promisify} from 'node:util';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createChatService} from './ai-chat.mjs';
+import {createWhatsApp,phone} from './whatsapp.mjs';
 
 const scrypt=promisify(scryptCb);
 const digest=x=>createHash('sha256').update(x).digest('hex');
@@ -60,6 +61,18 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
  async function seal(bucket,id,value){const iv=randomBytes(12),c=createCipheriv('aes-256-gcm',await key(),iv);c.setAAD(Buffer.from(bucket+':'+id));const b=Buffer.isBuffer(value)?value:Buffer.from(JSON.stringify(value));const data=Buffer.concat([c.update(b),c.final()]);return Buffer.concat([iv,c.getAuthTag(),data]);}
  async function unseal(bucket,id,b,raw=false){const c=createDecipheriv('aes-256-gcm',await key(),b.subarray(0,12));c.setAAD(Buffer.from(bucket+':'+id));c.setAuthTag(b.subarray(12,28));const out=Buffer.concat([c.update(b.subarray(28)),c.final()]);return raw?out:JSON.parse(out.toString());}
  async function transaction(fn){const c=await db.pool.connect();try{await c.query('BEGIN');const r=await fn(c);await c.query('COMMIT');return r;}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}}
+ async function linkWhatsAppLead(c,thread,meta,owner){
+  await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['wa-lead:'+meta.phone]);
+  const rows=(await c.query("SELECT * FROM crm.zip_records WHERE bucket='leads' AND deleted_at IS NULL ORDER BY created_at")).rows;
+  let found,payload;for(const r of rows){const p=await unseal('leads',r.record_id,r.encrypted_payload);if(r.record_id===thread.lead_id||phone(p.phone)===meta.phone){found=r;payload=p;break;}}
+  const id=found?.record_id||'wa-'+thread.id.slice(0,40);
+  await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['zip-record:leads:'+id]);
+  const current=(await c.query("SELECT * FROM crm.zip_records WHERE bucket='leads' AND record_id=$1 FOR UPDATE",[id])).rows[0];
+  if(current){found=current;payload=await unseal('leads',id,current.encrypted_payload);}
+  const p=payload?{...payload,owner:owner.name,ownerUser:owner.username,whatsappThread:thread.id}:{id,name:meta.name,phone:meta.phone,channel:'WhatsApp',moto:'Por definir',amount:0,stage:'NUEVO',owner:owner.name,ownerUser:owner.username,days:0,intent:'Media',note:'Conversación recibida por WhatsApp.',messages:[],whatsappThread:thread.id};
+  await c.query("INSERT INTO crm.zip_records(bucket,record_id,owner_id,encrypted_payload,dedupe_key) VALUES('leads',$1,$2,$3,$4) ON CONFLICT(bucket,record_id) DO UPDATE SET owner_id=EXCLUDED.owner_id,encrypted_payload=EXCLUDED.encrypted_payload,updated_at=now(),version=crm.zip_records.version+1",[id,owner.id,await seal('leads',id,p),found?.dedupe_key||'wa:'+meta.phone]);return id;
+ }
+ const whatsapp=createWhatsApp({db,seal,unseal,transaction,linkLead:linkWhatsAppLead,env});
  async function user(req){const token=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('tvsCRM='))?.slice(7);if(!/^[a-f0-9]{64}$/.test(token||''))return null;const {rows}=await db.query('SELECT u.id,u.username,u.name,u.role FROM crm.sessions s JOIN crm.users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active',[digest(token)]);return rows[0]&&roles.has(rows[0].role)?rows[0]:null;}
  function cookie(res,token,age){res.setHeader('Set-Cookie',`tvsCRM=${token}; HttpOnly; SameSite=Strict; Path=/api; Max-Age=${age}; Secure`);}
  function checkOrigin(req){const base=env.PUBLIC_ORIGIN||'https://tvssancris.com';if(req.headers.origin&&req.headers.origin!==base)throw problem('Origen no permitido.',403);if(req.headers['sec-fetch-site']==='cross-site')throw problem('Origen no permitido.',403);}
@@ -181,7 +194,7 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
   if(method!=='GET')throw problem('Método no permitido.',405);
   const bytes=await unseal('files',id,r.encrypted_data,true);res.writeHead(200,{'Content-Type':r.mime_type,'Content-Length':bytes.length,'Content-Disposition':`attachment; filename*=UTF-8''${encodeURIComponent(r.filename)}`,'X-Content-Type-Options':'nosniff','Cross-Origin-Resource-Policy':'same-origin','Cache-Control':'private, no-store'});res.end(bytes);
  }
- return async function handle(req,res){const path=new URL(req.url,'http://localhost').pathname;if(!path.startsWith('/api/zip/'))return false;
+ const handle=async function handle(req,res){const path=new URL(req.url,'http://localhost').pathname;if(!path.startsWith('/api/zip/'))return false;
   try{
    const method=req.method;if(method!=='GET')checkOrigin(req);
    if(path==='/api/zip/verify'&&method==='POST'){
@@ -203,6 +216,7 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
    if(path==='/api/zip/public'&&method==='POST'){json(res,201,await publicRecord(req,await body(req)));return true;}
    if(!u)throw problem('Inicia sesión nuevamente para guardar tus datos.',401);
    if(path==='/api/zip/logout'&&method==='POST'){const token=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('tvsCRM='))?.slice(7)||'';await db.query('DELETE FROM crm.sessions WHERE token_hash=$1',[digest(token)]);cookie(res,'',0);json(res,200,{ok:true});return true;}
+   if(path.startsWith('/api/zip/whatsapp/')){if(method!=='GET')limited(req,'whatsapp',120);return await whatsapp.handle(req,res,u,path,method==='POST'?await body(req):{});}
    if(path.startsWith('/api/zip/files/')){await files(req,res,u,path,method);return true;}
    if(path==='/api/zip/save'&&method==='POST'){
     const input=await body(req);if(input.kind==='setting'){json(res,200,await transaction(c=>updateSetting(c,u,input)));return true;}
@@ -212,4 +226,5 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
    throw problem('Ruta no encontrada.',404);
   }catch(e){const status=e.status||(e.code==='23505'?409:500);if(status===500)console.error('ZIP_DATA_ERROR',e.code||e.message);json(res,status,{error:status===500?'No se pudo guardar en el servidor. Tus cambios no han sido confirmados.':e.code==='23505'?'El registro ya existe. Revisa usuario, DPI o código.':e.message});return true;}
  };
+ handle.whatsapp=whatsapp;return handle;
 }
