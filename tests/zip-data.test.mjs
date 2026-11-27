@@ -10,10 +10,10 @@ import {createZipDataAPI,recordVisible,validateOwnerEdit,splitIntegrationSetting
 const owner={id:'11111111-1111-4111-a111-111111111111',username:'prueba',name:'Prueba',role:'freelance'};
 const other={id:'22222222-2222-4222-a222-222222222222',username:'otro',name:'Otro',role:'freelance'};
 const admin={id:'33333333-3333-4333-a333-333333333333',username:'admin',name:'Admin',role:'admin'};
-const tokens={a:'a'.repeat(64),b:'b'.repeat(64),c:'c'.repeat(64)};
+const tokens={a:'a'.repeat(64),b:'b'.repeat(64),c:'c'.repeat(64),d:'d'.repeat(64),e:'e'.repeat(64)};
 const hash=x=>createHash('sha256').update(x).digest('hex');
 function database(){
- const records=new Map(),files=new Map(),settings=new Map(),users=new Map([[hash(tokens.a),owner],[hash(tokens.b),other],[hash(tokens.c),admin]]);
+ const linked=new Set(),records=new Map(),files=new Map(),settings=new Map(),users=new Map([[hash(tokens.a),owner],[hash(tokens.b),other],[hash(tokens.c),admin],[hash(tokens.d),{...owner,role:'vendedor'}],[hash(tokens.e),{...other,role:'vendedor'}]]);
  const query=async(sql,v=[])=>{
   const result=rows=>({rows,rowCount:rows.length});
   if(/^(BEGIN|COMMIT|ROLLBACK)$/.test(sql)||sql.startsWith('SELECT pg_advisory'))return result([]);
@@ -23,7 +23,8 @@ function database(){
   if(sql.startsWith('SELECT version FROM crm.zip_settings'))return result(settings.has(v[0])?[settings.get(v[0])]:[]);
   if(sql.startsWith('INSERT INTO crm.zip_settings')){const r={key:v[0],value:v[1],version:(settings.get(v[0])?.version||0)+1};settings.set(v[0],r);return result([r]);}
   if(sql.startsWith('SELECT id,username,name,role,active,updated_at'))return result([]);
-  if(sql.startsWith('SELECT bucket,record_id'))return result([...records.values()].filter(r=>!r.deleted_at&&(v[0]||r.owner_id===v[1]||r.bucket==='materials'||(r.bucket==='requests'&&r.owner_id===null))));
+  if(sql.startsWith('SELECT 1 FROM crm.wa_threads WHERE lead_id='))return result(linked.has(v[0])?[{one:1}]:[]);
+  if(sql.startsWith('SELECT bucket,record_id'))return result([...records.values()].filter(r=>!r.deleted_at&&(v[0]||r.owner_id===v[1]||(v[2]&&r.bucket==='leads'&&linked.has(r.record_id))||r.bucket==='materials'||(r.bucket==='requests'&&r.owner_id===null))).map(r=>({...r,shared_whatsapp:linked.has(r.record_id)})));
   if(sql.startsWith('SELECT * FROM crm.zip_records')){const r=records.get(v[0]+':'+v[1]);return result(r?[r]:[]);}
   if(sql.startsWith('INSERT INTO crm.zip_records')){
    const k=v[0]+':'+v[1],prev=records.get(k);const r={bucket:v[0],record_id:v[1],owner_id:v[2],encrypted_payload:v[3],secret_hash:v[4],version:(prev?.version||0)+1};records.set(k,r);return result([r]);
@@ -39,7 +40,7 @@ function database(){
   if(sql.startsWith('SELECT u.id FROM crm.users'))return result([]);
   throw Error('Unhandled SQL: '+sql);
  };
- return {query,records,files,settings,pool:{connect:async()=>({query,release(){}})}};
+ return {query,records,files,settings,linked,pool:{connect:async()=>({query,release(){}})}};
 }
 async function fixture(t){const db=database(),dir=await mkdtemp(join(tmpdir(),'tvs-db-test-'));const verifyCaptcha=async(token)=>{if(token!=='test-captcha')throw Object.assign(Error('Captcha requerido'),{status:403});};const handle=createZipDataAPI(db,{env:{SECURITY_DATA_DIR:dir,PUBLIC_ORIGIN:'http://localhost'},verifyCaptcha});
  const request=async(path,{token,method='GET',data,bytes,headers={}}={})=>{const req=Readable.from(bytes?[bytes]:data?[Buffer.from(JSON.stringify(data))]:[]);req.url='/api/zip/'+path;req.method=method;req.headers={...headers,...token?{cookie:'tvsCRM='+token}:{}};req.socket={remoteAddress:'127.0.0.1'};const res={status:0,headers:{},writeHead(status,h){this.status=status;this.headers={...this.headers,...h}},setHeader(k,v){this.headers[k]=v},end(v){this.bytes=Buffer.isBuffer(v)?v:Buffer.from(v||'')}};await handle(req,res);try{res.data=JSON.parse(res.bytes.toString())}catch{}return res;};
@@ -64,3 +65,5 @@ test('las solicitudes públicas requieren una verificación de un solo uso',asyn
 test('las claves de integraciones se separan de la configuración devuelta al navegador',()=>{const {config,secrets}=splitIntegrationSettings(JSON.stringify({name:'CRM',integrations:{metaAppId:'public-id',openaiApiKey:'test-only',databaseUrl:'test-only'}}));assert.equal(config.integrations.openaiApiKey,undefined);assert.equal(config.integrations.databaseUrl,undefined);assert.equal(config.integrations.metaAppId,'public-id');assert.equal(secrets.openaiApiKey,'test-only');});
 
 test('las credenciales guardadas se cifran y nunca vuelven en el estado del navegador',async t=>{const {db,request}=await fixture(t);const value=JSON.stringify({name:'CRM',integrations:{openaiApiKey:'private-test-key',databaseUrl:'private-test-dsn'}});const saved=await request('save',{method:'POST',token:tokens.a,data:{kind:'setting',key:'tvs_motoKommoSettings',value,version:0}});assert.equal(saved.status,200,JSON.stringify(saved.data));const state=await request('state',{token:tokens.a});assert.ok(!JSON.stringify(state.data).includes('private-test-key'));assert.ok(!JSON.stringify(state.data).includes('private-test-dsn'));const privateRow=[...db.settings.values()].find(r=>r.key.startsWith('secret:'));assert.ok(privateRow);assert.ok(!privateRow.value.includes('private-test-key'));assert.equal(JSON.parse(state.data.values.tvs_motoKommoSettings).configuredSecrets.openaiApiKey,true);});
+
+test('shared WhatsApp leads appear and can move stages for the internal team only',async t=>{const {db,request}=await fixture(t);const p={id:'shared-lead',name:'Prueba',phone:'00000000',stage:'NUEVO',owner:'Responsable',ownerUser:'prueba',whatsappThread:'thread-test'};assert.equal((await request('save',{token:tokens.d,method:'POST',data:{bucket:'leads',changes:[{id:p.id,payload:p,version:0}]}})).status,200);let r=await request('state',{token:tokens.e});assert.equal(JSON.parse(r.data.values.tvs_motoKommoLeads).length,0);db.linked.add(p.id);r=await request('state',{token:tokens.e});assert.equal(JSON.parse(r.data.values.tvs_motoKommoLeads).length,1);const freelance=await request('state',{token:tokens.b});assert.equal(JSON.parse(freelance.data.values.tvs_motoKommoLeads).length,0);const edited=await request('save',{token:tokens.e,method:'POST',data:{bucket:'leads',changes:[{id:p.id,payload:{...p,stage:'CITA',owner:'Cambio no permitido',whatsappThread:'invalid'},version:1}]}});assert.equal(edited.status,200,JSON.stringify(edited.data));assert.equal(edited.data.changes[0].payload.owner,'Prueba');assert.equal(edited.data.changes[0].payload.whatsappThread,'thread-test');assert.equal(edited.data.changes[0].payload.stage,'CITA');});
