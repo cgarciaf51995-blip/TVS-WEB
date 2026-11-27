@@ -27,7 +27,7 @@ const rowId=p=>cleanId(p.id??p.code??p.username);
 const uuid=x=>{if(/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(x))return x;const h=digest('tvs-zip-user:'+x);return `${h.slice(0,8)}-${h.slice(8,12)}-4${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;};
 const safePayload=p=>{if(!p||typeof p!=='object'||Array.isArray(p))throw problem('Registro inválido.');const r={...p};delete r.password;delete r.password_hash;delete r.secret_hash;return r;};
 const text=(v,max=200)=>String(v??'').trim().slice(0,max);
-export function recordVisible(bucket,row,user){return !!user&&(manager(user)||row.owner_id===user.id||bucket==='materials'||(bucket==='requests'&&row.owner_id===null&&row.payload.allFreelancers===true));}
+export function recordVisible(bucket,row,user){return !!user&&(manager(user)||(user.role==='vendedor'&&bucket==='leads'&&row.shared_whatsapp===true)||row.owner_id===user.id||bucket==='materials'||(bucket==='requests'&&row.owner_id===null&&row.payload.allFreelancers===true));}
 export function validateOwnerEdit(bucket,previous,next,user){
  if(manager(user))return;
  if(bucket==='referrals'){
@@ -69,8 +69,11 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
   await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['zip-record:leads:'+id]);
   const current=(await c.query("SELECT * FROM crm.zip_records WHERE bucket='leads' AND record_id=$1 FOR UPDATE",[id])).rows[0];
   if(current){found=current;payload=await unseal('leads',id,current.encrypted_payload);}
-  const p=payload?{...payload,owner:owner.name,ownerUser:owner.username,whatsappThread:thread.id}:{id,name:meta.name,phone:meta.phone,channel:'WhatsApp',moto:'Por definir',amount:0,stage:'NUEVO',owner:owner.name,ownerUser:owner.username,days:0,intent:'Media',note:'Conversación recibida por WhatsApp.',messages:[],whatsappThread:thread.id};
-  await c.query("INSERT INTO crm.zip_records(bucket,record_id,owner_id,encrypted_payload,dedupe_key) VALUES('leads',$1,$2,$3,$4) ON CONFLICT(bucket,record_id) DO UPDATE SET owner_id=EXCLUDED.owner_id,encrypted_payload=EXCLUDED.encrypted_payload,updated_at=now(),version=crm.zip_records.version+1",[id,owner.id,await seal('leads',id,p),found?.dedupe_key||'wa:'+meta.phone]);return id;
+  const ownerId=owner?.id??found?.owner_id??thread.owner_id??null;
+  if(found&&!owner&&payload.whatsappThread===thread.id)return {id,ownerId};
+  let stage='NUEVO';if(!payload){const setting=(await c.query("SELECT value FROM crm.zip_settings WHERE key='tvs_motoKommoStages'")).rows[0];try{const list=JSON.parse(setting?.value||'[]');if(Array.isArray(list)&&typeof list[0]?.[0]==='string')stage=list[0][0];}catch{}}
+  const p=payload?{...payload,...(owner?{owner:owner.name,ownerUser:owner.username}:{}),whatsappThread:thread.id}:{id,name:meta.name,phone:meta.phone,channel:'WhatsApp',moto:'Por definir',amount:0,stage,owner:owner?.name||'Sin asignar',ownerUser:owner?.username||'',days:0,intent:'Media',note:'Conversación recibida por WhatsApp.',messages:[],whatsappThread:thread.id};
+  await c.query("INSERT INTO crm.zip_records(bucket,record_id,owner_id,encrypted_payload,dedupe_key) VALUES('leads',$1,$2,$3,$4) ON CONFLICT(bucket,record_id) DO UPDATE SET owner_id=EXCLUDED.owner_id,encrypted_payload=EXCLUDED.encrypted_payload,updated_at=now(),version=crm.zip_records.version+1",[id,ownerId,await seal('leads',id,p),found?.dedupe_key||'wa:'+meta.phone]);return {id,ownerId};
  }
  const whatsapp=createWhatsApp({db,seal,unseal,transaction,linkLead:linkWhatsAppLead,env});
  async function user(req){const token=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith('tvsCRM='))?.slice(7);if(!/^[a-f0-9]{64}$/.test(token||''))return null;const {rows}=await db.query('SELECT u.id,u.username,u.name,u.role FROM crm.sessions s JOIN crm.users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active',[digest(token)]);return rows[0]&&roles.has(rows[0].role)?rows[0]:null;}
@@ -86,7 +89,7 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
   for(const r of settings.rows){let k=r.key;if(k.startsWith('user:')){if(!u||!k.startsWith('user:'+u.id+':'))continue;k=k.slice(('user:'+u.id+':').length);}else if(privateKeys.has(k)&&!manager(u))continue;else if(!publicKeys.has(k)&&!stageKeys.has(k)&&!privateKeys.has(k))continue;values[k]=r.value;versions[k]=Number(r.version);}
   if(u){
    for(const k of Object.values(canonical))values[k]='[]';
-   const {rows}=await db.query('SELECT bucket,record_id,owner_id,encrypted_payload,version FROM crm.zip_records WHERE deleted_at IS NULL AND ($1::boolean OR owner_id=$2 OR bucket=\'materials\' OR (bucket=\'requests\' AND owner_id IS NULL)) ORDER BY created_at DESC',[!!manager(u),u.id]);
+   const {rows}=await db.query('SELECT bucket,record_id,owner_id,encrypted_payload,version,EXISTS(SELECT 1 FROM crm.wa_threads w WHERE w.lead_id=record_id AND bucket=\'leads\') AS shared_whatsapp FROM crm.zip_records WHERE deleted_at IS NULL AND ($1::boolean OR owner_id=$2 OR bucket=\'materials\' OR ($3::boolean AND bucket=\'leads\' AND EXISTS(SELECT 1 FROM crm.wa_threads w WHERE w.lead_id=record_id)) OR (bucket=\'requests\' AND owner_id IS NULL)) ORDER BY created_at DESC',[!!manager(u),u.id,u.role==='vendedor']);
    const grouped={};for(const r of rows){const payload=await unseal(r.bucket,r.record_id,r.encrypted_payload);if(!recordVisible(r.bucket,{...r,payload},u))continue;(grouped[r.bucket]??=[]).push(payload);versions[r.bucket+':'+r.record_id]=Number(r.version);}
    for(const [bucket,rows] of Object.entries(grouped))if(canonical[bucket])values[canonical[bucket]]=JSON.stringify(rows);
    if(u.role==='admin'){
@@ -134,13 +137,14 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
  async function updateRecord(c,u,bucket,change){
   if(bucket==='users')return updateUser(c,u,change);
   const id=cleanId(change.id);await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['zip-record:'+bucket+':'+id]);const prev=(await c.query('SELECT * FROM crm.zip_records WHERE bucket=$1 AND record_id=$2 FOR UPDATE',[bucket,id])).rows[0];
+  if(prev&&bucket==='leads')prev.shared_whatsapp=!!(await c.query('SELECT 1 FROM crm.wa_threads WHERE lead_id=$1 LIMIT 1',[id])).rows.length;
   const old=prev?await unseal(bucket,id,prev.encrypted_payload):null;
   if(prev&&!recordVisible(bucket,{...prev,payload:old},u))throw problem('Registro no disponible.',404);
   if(Number(prev?.version||0)!==Number(change.version||0))throw problem('Otra persona actualizó este registro. Recarga antes de guardar.',409);
   if(change.deleted){if(!manager(u)&&(!prev||prev.owner_id!==u.id||!['referrals','leads','filemeta'].includes(bucket)))throw problem('No puedes eliminar este registro.',403);const r=await c.query('UPDATE crm.zip_records SET deleted_at=now(),version=version+1,updated_at=now() WHERE bucket=$1 AND record_id=$2 RETURNING version',[bucket,id]);return {id,version:Number(r.rows[0]?.version||0),deleted:true};}
-  let p=safePayload(change.payload);if(rowId(p)!==id)throw problem('Identificador de registro inválido.');validateOwnerEdit(bucket,old,p,u);
-  let owner=prev?.owner_id??await targetOwner(c,p,u),secret=prev?.secret_hash||null;
-  if(!manager(u)&&prev&&prev.owner_id!==u.id&&!(bucket==='requests'&&old.allFreelancers))throw problem('No puedes cambiar este registro.',403);
+  let p=safePayload(change.payload);if(old&&prev.shared_whatsapp){p.whatsappThread=old.whatsappThread;p.owner=old.owner;p.ownerUser=old.ownerUser;}if(rowId(p)!==id)throw problem('Identificador de registro inválido.');validateOwnerEdit(bucket,old,p,u);
+  let owner=prev?.shared_whatsapp?prev.owner_id:(prev?.owner_id??await targetOwner(c,p,u)),secret=prev?.secret_hash||null;
+  if(!manager(u)&&prev&&prev.owner_id!==u.id&&!(u.role==='vendedor'&&bucket==='leads'&&prev.shared_whatsapp)&&!(bucket==='requests'&&old.allFreelancers))throw problem('No puedes cambiar este registro.',403);
   if(['filemeta','materials'].includes(bucket)){
    const file=(await c.query('SELECT owner_id FROM crm.zip_files WHERE id=$1 AND deleted_at IS NULL',[String(p.fileId||'')])).rows[0];if(!file||(!manager(u)&&file.owner_id!==u.id))throw problem('Primero adjunta un archivo válido.',403);
   }
@@ -149,7 +153,7 @@ export function createZipDataAPI(db,{env=process.env,verifyCaptcha}={}){
   }
   if(bucket==='referrals'&&!prev&&!manager(u)){p.freelance=u.username;p.freelanceUser=u.username;p.freelanceName=u.name;owner=u.id;}
   if(bucket==='leads'&&!manager(u)&&u.role!=='vendedor')throw problem('No tienes permiso para gestionar el CRM.',403);
-  if(bucket==='leads'&&!manager(u)){owner=u.id;p.owner=u.name;}
+  if(bucket==='leads'&&!manager(u)&&!prev?.shared_whatsapp){owner=u.id;p.owner=u.name;}
   if(bucket==='applications'){
    if(u.role!=='admin'&&change.payload.password)throw problem('Solo Administración puede cambiar las credenciales.',403);
    if(change.payload.password)secret=await hashPassword(change.payload.password);
